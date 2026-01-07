@@ -39,6 +39,23 @@ A full-stack chat experience with temporary access codes, realtime messaging, fi
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:5000
 
+## Environment Variables
+
+### Frontend (.env.local)
+```env
+REACT_APP_API_BASE=http://localhost:5000
+```
+
+### Backend (.env)
+```env
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
+PORT=5000
+NODE_ENV=production
+FRONTEND_URL=https://your-frontend-url.vercel.app
+CORS_ORIGIN=https://your-frontend-url.vercel.app
+```
+
 ## Deployment
 
 ### Option 1: Manual Deployment
@@ -70,9 +87,39 @@ A full-stack chat experience with temporary access codes, realtime messaging, fi
 
 ### Option 3: Cloud Platforms
 
-#### Vercel (Frontend) + Railway/Heroku (Backend)
-- **Frontend**: Deploy `frontend/` folder to Vercel
-- **Backend**: Deploy `backend/` folder to Railway/Heroku
+#### Vercel Deployment (Recommended)
+
+##### Frontend Deployment:
+1. **Connect Repository**
+   - Go to [Vercel Dashboard](https://vercel.com/dashboard)
+   - Click "New Project"
+   - Import your GitHub repository: `Sandeep-aegula/timechat`
+
+2. **Configure Build Settings**
+   - **Root Directory:** `frontend` ⭐
+   - **Build Command:** `npm run build` (automatic)
+   - **Output Directory:** `build` (automatic)
+
+3. **Environment Variables** (in Vercel Dashboard)
+   - `REACT_APP_API_BASE` = `https://your-backend-url.vercel.app`
+   - Example: `https://timechat-backend-production.up.railway.app`
+
+4. **Deploy**
+   - Vercel will automatically build and deploy
+   - Analytics will be enabled automatically
+   - Get your frontend URL (e.g., `https://timechat.vercel.app`)
+
+##### Backend Deployment (Railway/Heroku):
+1. **Railway (Recommended)**
+   - Connect GitHub repo
+   - Set root directory to `backend`
+   - Add environment variables from `backend/.env.example`
+
+2. **Heroku**
+   - Create new app
+   - Set buildpack to `heroku/nodejs`
+   - Deploy `backend/` folder
+   - Configure environment variables
 
 #### Heroku (Full-stack)
 1. Create Heroku app
