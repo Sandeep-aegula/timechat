@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, useToast, useDisclosure } from '@chakra-ui/react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
+import { Analytics } from '@vercel/analytics/react';
 import './App.css';
 
 // Import our new components
@@ -484,6 +485,7 @@ function App() {
         user={user}
         onUpdateProfile={handleUpdateProfile}
       />
+      <Analytics />
       </Box>
     </Box>
   );
