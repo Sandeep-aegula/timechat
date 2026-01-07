@@ -105,7 +105,8 @@ CORS_ORIGIN=https://your-frontend-url.vercel.app
    - Example: `https://timechat-backend-production.up.railway.app`
 
 4. **Deploy**
-   - Vercel will automatically build and deploy
+   - Vercel will automatically detect it as a React app
+   - No special configuration needed
    - Analytics will be enabled automatically
    - Get your frontend URL (e.g., `https://timechat.vercel.app`)
 
