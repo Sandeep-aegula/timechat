@@ -25,12 +25,17 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  // Accept images, documents, and common file types
+  // Accept images, documents, audio files, and common file types
   const allowedTypes = [
     'image/jpeg',
     'image/png',
     'image/gif',
     'image/webp',
+    'audio/webm',
+    'audio/wav',
+    'audio/mp3',
+    'audio/mpeg',
+    'audio/ogg',
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

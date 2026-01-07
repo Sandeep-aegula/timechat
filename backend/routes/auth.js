@@ -94,4 +94,52 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Middleware for protected routes
+const { protect } = require('../middleware/auth');
+
+// @route   PUT /api/auth/profile
+// @desc    Update user profile
+// @access  Private
+router.put('/profile', protect, async (req, res) => {
+  try {
+    const { name, pic } = req.body;
+
+    // Find user
+    const user = await User.findById(req.user._id || req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Validate name if provided
+    if (name) {
+      if (typeof name !== 'string' || name.trim().length === 0) {
+        return res.status(400).json({ error: 'Name must be a non-empty string' });
+      }
+      if (name.length > 50) {
+        return res.status(400).json({ error: 'Name cannot exceed 50 characters' });
+      }
+      user.name = name.trim();
+    }
+
+    // Update picture if provided
+    if (pic) {
+      user.pic = pic;
+    }
+
+    // Save updated user
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      pic: updatedUser.pic,
+      message: 'Profile updated successfully',
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: error.message || 'Failed to update profile' });
+  }
+});
+
 module.exports = router;

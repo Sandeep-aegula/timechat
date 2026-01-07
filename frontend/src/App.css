@@ -1,20 +1,56 @@
+/* Global Styles */
+* {
+	box-sizing: border-box;
+}
+
 body {
 	background: linear-gradient(135deg, #0f172a 0%, #111827 40%, #0d9488 100%);
 	min-height: 100vh;
+	margin: 0;
+	padding: 0;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 .app-shell {
 	min-height: 100vh;
 	width: 100%;
+	padding: 8px;
 }
 
+/* Responsive padding for app shell */
+@media (min-width: 768px) {
+	.app-shell {
+		padding: 16px;
+	}
+}
+
+@media (min-width: 1024px) {
+	.app-shell {
+		padding: 0;
+	}
+}
+
+/* Message bubbles */
 .bubble {
 	background: #ffffff;
 	border: 1px solid #e5e7eb;
 	border-radius: 10px;
 	padding: 10px 12px;
-	max-width: 82%;
+	max-width: 85%;
 	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+	.bubble {
+		max-width: 75%;
+	}
+}
+
+@media (min-width: 1024px) {
+	.bubble {
+		max-width: 70%;
+	}
 }
 
 .bubble.self {
@@ -27,4 +63,126 @@ body {
 	color: #0f766e;
 	font-weight: 600;
 	text-decoration: underline;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
+::-webkit-scrollbar-track {
+	background: #f1f5f9;
+	border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #cbd5e1;
+	border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #94a3b8;
+}
+
+/* Hide scrollbar on mobile for cleaner look */
+@media (max-width: 767px) {
+	::-webkit-scrollbar {
+		width: 4px;
+	}
+}
+
+/* Input focus states for mobile */
+@media (max-width: 767px) {
+	input:focus,
+	textarea:focus {
+		font-size: 16px !important; /* Prevent zoom on iOS */
+	}
+}
+
+/* Animations */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-fade-in {
+	animation: fadeIn 0.2s ease-out;
+}
+
+/* Typing indicator animation */
+@keyframes typingDot {
+	0%, 60%, 100% {
+		transform: translateY(0);
+	}
+	30% {
+		transform: translateY(-4px);
+	}
+}
+
+.typing-dot {
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	background-color: #64748b;
+	border-radius: 50%;
+	margin: 0 2px;
+}
+
+.typing-dot:nth-child(1) {
+	animation: typingDot 1.4s infinite 0s;
+}
+
+.typing-dot:nth-child(2) {
+	animation: typingDot 1.4s infinite 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+	animation: typingDot 1.4s infinite 0.4s;
+}
+
+/* Safe area support for mobile devices with notches */
+@supports (padding: max(0px)) {
+	.app-shell {
+		padding-left: max(8px, env(safe-area-inset-left));
+		padding-right: max(8px, env(safe-area-inset-right));
+		padding-bottom: max(8px, env(safe-area-inset-bottom));
+	}
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 767px) {
+	button,
+	.chakra-button,
+	[role="button"] {
+		min-height: 44px;
+		min-width: 44px;
+	}
+	
+	.chakra-icon-button {
+		min-height: 40px;
+		min-width: 40px;
+	}
+}
+
+/* Prevent text selection on UI elements */
+.no-select {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+/* Allow text selection in message content */
+.message-content {
+	-webkit-user-select: text;
+	-moz-user-select: text;
+	-ms-user-select: text;
+	user-select: text;
 }

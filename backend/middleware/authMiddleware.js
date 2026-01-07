@@ -22,16 +22,23 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'User not found' });
       }
 
-      next();
+      return next();
     } catch (error) {
-      console.error('Auth middleware error:', error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      console.error('Auth middleware error:', error.name, error.message);
+      
+      // Provide specific error messages
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Token expired, please login again' });
+      } else if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({ message: 'Invalid token, please login again' });
+      }
+      
+      return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
 
-  if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
-  }
+  // No token provided
+  return res.status(401).json({ message: 'Not authorized, no token' });
 };
 
 module.exports = { protect };

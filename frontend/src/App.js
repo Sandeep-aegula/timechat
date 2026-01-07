@@ -1,6 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { HStack, Box, useToast, useDisclosure } from '@chakra-ui/react';
+import { Box, useToast, useDisclosure } from '@chakra-ui/react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 import './App.css';
@@ -9,14 +9,14 @@ import './App.css';
 import LoginForm from './components/LoginForm';
 import ChatSidebar from './components/ChatSidebar';
 import ChatWindow from './components/ChatWindow';
-import ChartCodeGenerator from './components/ChartCodeGenerator';
+import ProfileEditor from './components/ProfileEditor';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 const apiClient = axios.create({ baseURL: API_BASE });
 
 function App() {
   const toast = useToast();
-  const { isOpen: isChartModalOpen, onOpen: openChartModal, onClose: closeChartModal } = useDisclosure();
+  const { isOpen: isProfileModalOpen, onOpen: openProfileModal, onClose: closeProfileModal } = useDisclosure();
   
   const [token, setToken] = useState(() => localStorage.getItem('chat_token') || '');
   const [user, setUser] = useState(() => {
@@ -35,8 +35,26 @@ function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [tempCodeInput, setTempCodeInput] = useState('');
   const [generatedCode, setGeneratedCode] = useState(null);
+  const [typingUsers, setTypingUsers] = useState([]);
   const socketRef = useRef(null);
   const selectedChatIdRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+
+  // Handle logout - defined early so interceptor can use it
+  const handleLogout = useCallback(() => {
+    setToken('');
+    setUser(null);
+    setChats([]);
+    setMessages([]);
+    setSelectedChat(null);
+    setGeneratedCode(null);
+    localStorage.removeItem('chat_token');
+    localStorage.removeItem('chat_user');
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     if (token) {
@@ -44,7 +62,24 @@ function App() {
     } else {
       delete apiClient.defaults.headers.common.Authorization;
     }
-  }, [token]);
+    
+    // Add response interceptor to handle auth errors
+    const interceptor = apiClient.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          // Token is invalid or expired - logout user
+          console.log('Auth error, logging out:', error.response?.data?.message);
+          handleLogout();
+        }
+        return Promise.reject(error);
+      }
+    );
+    
+    return () => {
+      apiClient.interceptors.response.eject(interceptor);
+    };
+  }, [token, handleLogout]);
 
   useEffect(() => {
     selectedChatIdRef.current = selectedChat ? selectedChat._id : null;
@@ -60,21 +95,6 @@ function App() {
     setUser(issuedUser);
     localStorage.setItem('chat_token', issuedToken);
     localStorage.setItem('chat_user', JSON.stringify(issuedUser));
-  }, []);
-
-  const handleLogout = useCallback(() => {
-    setToken('');
-    setUser(null);
-    setChats([]);
-    setMessages([]);
-    setSelectedChat(null);
-    setGeneratedCode(null);
-    localStorage.removeItem('chat_token');
-    localStorage.removeItem('chat_user');
-    if (socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
-    }
   }, []);
 
   const fetchChats = useCallback(async () => {
@@ -121,6 +141,24 @@ function App() {
         setMessages((prev) => [...prev, incoming]);
       } else {
         fetchChats();
+      }
+    });
+
+    // Typing indicator handlers
+    socket.on('typing', ({ chatId, userId, userName }) => {
+      if (selectedChatIdRef.current === chatId && userId !== (user.id || user._id)) {
+        setTypingUsers((prev) => {
+          if (!prev.find(u => u.userId === userId)) {
+            return [...prev, { userId, userName }];
+          }
+          return prev;
+        });
+      }
+    });
+
+    socket.on('stop typing', ({ chatId, userId }) => {
+      if (selectedChatIdRef.current === chatId) {
+        setTypingUsers((prev) => prev.filter(u => u.userId !== userId));
       }
     });
 
@@ -180,23 +218,6 @@ function App() {
     }
   };
 
-  const handleCreateTestGroup = async () => {
-    try {
-      const { data } = await apiClient.post('/api/chat/group', {
-        name: "Test Group Chat",
-        users: [] // Just the current user will be added automatically
-      });
-      notify('Test group chat created!');
-      setChats((prev) => {
-        const exists = prev.find((c) => c._id === data._id);
-        return exists ? prev : [data, ...prev];
-      });
-      handleSelectChat(data);
-    } catch (err) {
-      notify(err.response?.data?.error || 'Could not create test group', 'error');
-    }
-  };
-
   const handleCreateNewChat = async (chatName) => {
     try {
       const { data } = await apiClient.post('/api/chat/group', {
@@ -213,29 +234,6 @@ function App() {
     } catch (err) {
       notify(err.response?.data?.error || 'Could not create chat', 'error');
       throw err;
-    }
-  };
-
-  const joinOrCreateGlobalChat = async () => {
-    try {
-      // Try to find existing global chat
-      const { data: existingChats } = await apiClient.get('/api/chat');
-      const globalChat = existingChats.find(chat => 
-        chat.chatName === 'Global Chat' && chat.isGroupChat
-      );
-      
-      if (globalChat) {
-        // User is already in global chat
-        return;
-      }
-      
-      // Try to join existing global chat or create new one
-      const { data } = await apiClient.post('/api/chat/join-global');
-      notify('Welcome to Global Chat!');
-      fetchChats();
-    } catch (err) {
-      console.log('Global chat setup:', err.message);
-      // If global chat doesn't exist, it will be created by backend
     }
   };
 
@@ -299,6 +297,11 @@ function App() {
   const handleSendMessage = async () => {
     if ((!newMessage.trim() && !file) || !selectedChat) return;
     
+    // Stop typing indicator when sending
+    if (socketRef.current && selectedChat) {
+      socketRef.current.emit('stop typing', selectedChat._id);
+    }
+    
     try {
       setIsSending(true);
       
@@ -342,6 +345,24 @@ function App() {
     }
   };
 
+  const handleTyping = useCallback(() => {
+    if (!socketRef.current || !selectedChat) return;
+    
+    socketRef.current.emit('typing', selectedChat._id);
+    
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Stop typing after 3 seconds of no input
+    typingTimeoutRef.current = setTimeout(() => {
+      if (socketRef.current && selectedChat) {
+        socketRef.current.emit('stop typing', selectedChat._id);
+      }
+    }, 3000);
+  }, [selectedChat]);
+
   const handleLeaveChat = async () => {
     if (!selectedChat) return;
     
@@ -356,8 +377,24 @@ function App() {
     }
   };
 
-  const handleGenerateChartCode = () => {
-    openChartModal();
+  const handleUpdateProfile = async (profileData) => {
+    try {
+      const { data } = await apiClient.put('/api/auth/profile', profileData);
+      
+      // Update user state with new profile data
+      const updatedUser = {
+        ...user,
+        name: data.name,
+        pic: data.pic || user.pic
+      };
+      setUser(updatedUser);
+      localStorage.setItem('chat_user', JSON.stringify(updatedUser));
+      
+      notify('Profile updated successfully!', 'success');
+      closeProfileModal();
+    } catch (err) {
+      throw new Error(err.response?.data?.error || 'Failed to update profile');
+    }
   };
 
   const isAuthenticated = useMemo(() => Boolean(token && user), [token, user]);
@@ -372,13 +409,25 @@ function App() {
   }
 
   return (
-    <Box display="flex" flexDirection={{ base: "column", lg: "row" }} height="100vh" overflow="hidden">
+    <Box bg="gray.100" minH="100vh" py={{ base: 0, md: 4 }}>
+      <Box
+        display="flex"
+        flexDirection={{ base: "column", lg: "row" }}
+        height={{ base: "100vh", md: "calc(100vh - 32px)" }}
+        maxW={{ base: "100%", xl: "1400px" }}
+        mx="auto"
+        bg="white"
+        boxShadow={{ base: 'none', md: 'xl' }}
+        borderRadius={{ base: 0, md: 'xl' }}
+        overflow="hidden"
+      >
       {/* Mobile/Tablet: Show sidebar or chat, Desktop: Show both */}
       <Box 
         display={{ base: selectedChat ? "none" : "block", lg: "block" }}
-        width={{ base: "100%", lg: "350px" }}
-        minWidth={{ lg: "350px" }}
-        height={{ base: selectedChat ? "0" : "100vh", lg: "100vh" }}
+        width={{ base: "100%", lg: "32%" }}
+        minWidth={{ lg: "320px" }}
+        maxWidth={{ lg: "360px" }}
+        height={{ base: selectedChat ? "0" : "100%", lg: "100%" }}
         borderRightWidth={{ lg: "1px" }}
         bg="gray.50"
       >
@@ -399,6 +448,7 @@ function App() {
           onSelectChat={handleSelectChat}
           onGenerateTempCode={handleGenerateTempCode}
           onJoinWithTempCode={handleJoinWithTempCode}
+          onOpenProfileModal={openProfileModal}
         />
       </Box>
       
@@ -406,8 +456,9 @@ function App() {
       <Box 
         flex="1"
         display={{ base: selectedChat ? "block" : "none", lg: "block" }}
-        height="100vh"
+        height="100%"
         position="relative"
+        bg="white"
       >
         <ChatWindow
           selectedChat={selectedChat}
@@ -419,17 +470,21 @@ function App() {
           setFile={setFile}
           isLoading={loadingMessages}
           isUploading={isUploading || isSending}
+          typingUsers={typingUsers}
           onSendMessage={handleSendMessage}
+          onTyping={handleTyping}
           onLeaveChat={handleLeaveChat}
-          onGenerateChartCode={handleGenerateChartCode}
-          onBackToSidebar={() => setSelectedChat(null)} // Add back button for mobile
+          onBackToSidebar={() => setSelectedChat(null)}
         />
       </Box>
       
-      <ChartCodeGenerator 
-        isOpen={isChartModalOpen} 
-        onClose={closeChartModal} 
+      <ProfileEditor
+        isOpen={isProfileModalOpen}
+        onClose={closeProfileModal}
+        user={user}
+        onUpdateProfile={handleUpdateProfile}
       />
+      </Box>
     </Box>
   );
 }

@@ -13,6 +13,8 @@ import {
   Tab,
   TabPanel,
   TabPanels,
+  Text,
+  VStack,
 } from '@chakra-ui/react';
 
 const LoginForm = ({ onLogin, onRegister }) => {
@@ -34,46 +36,128 @@ const LoginForm = ({ onLogin, onRegister }) => {
   };
 
   return (
-    <Center className="app-shell">
-      <Box bg="white" p={8} rounded="md" shadow="xl" width="560px">
-        <Heading size="lg" mb={6}>MERN Chat</Heading>
-        <Tabs variant="enclosed" colorScheme="teal" defaultIndex={0}>
-          <TabList>
-            <Tab>Login</Tab>
-            <Tab>Register</Tab>
+    <Center className="app-shell" px={{ base: 4, md: 6 }}>
+      <Box 
+        bg="white" 
+        p={{ base: 5, md: 8 }} 
+        rounded="xl" 
+        shadow="2xl" 
+        width={{ base: "100%", sm: "400px", md: "480px", lg: "520px" }}
+        maxW="100%"
+      >
+        <VStack spacing={{ base: 4, md: 6 }} mb={{ base: 4, md: 6 }}>
+          <Text fontSize={{ base: "3xl", md: "4xl" }}>💬</Text>
+          <Heading size={{ base: "lg", md: "xl" }} textAlign="center" color="gray.800">
+            MERN Chat
+          </Heading>
+          <Text 
+            fontSize={{ base: "sm", md: "md" }} 
+            color="gray.600" 
+            textAlign="center"
+          >
+            Secure, temporary chat rooms for everyone
+          </Text>
+        </VStack>
+        
+        <Tabs variant="enclosed" colorScheme="teal" defaultIndex={0} isFitted>
+          <TabList mb={{ base: 3, md: 4 }}>
+            <Tab 
+              fontSize={{ base: "sm", md: "md" }}
+              py={{ base: 2, md: 3 }}
+              _selected={{ bg: "teal.50", color: "teal.600", fontWeight: "semibold" }}
+            >
+              Login
+            </Tab>
+            <Tab 
+              fontSize={{ base: "sm", md: "md" }}
+              py={{ base: 2, md: 3 }}
+              _selected={{ bg: "teal.50", color: "teal.600", fontWeight: "semibold" }}
+            >
+              Register
+            </Tab>
           </TabList>
           <TabPanels>
-            <TabPanel>
+            <TabPanel px={{ base: 0, md: 2 }}>
               <form onSubmit={handleLogin}>
-                <Stack spacing={4}>
+                <Stack spacing={{ base: 3, md: 4 }}>
                   <FormControl>
-                    <FormLabel>Email</FormLabel>
-                    <Input name="loginEmail" type="email" placeholder="you@example.com" required />
+                    <FormLabel fontSize={{ base: "sm", md: "md" }}>Email</FormLabel>
+                    <Input 
+                      name="loginEmail" 
+                      type="email" 
+                      placeholder="you@example.com" 
+                      required 
+                      size={{ base: "md", md: "lg" }}
+                      fontSize={{ base: "16px", md: "md" }}
+                    />
                   </FormControl>
                   <FormControl>
-                    <FormLabel>Password</FormLabel>
-                    <Input name="loginPassword" type="password" placeholder="••••••••" required />
+                    <FormLabel fontSize={{ base: "sm", md: "md" }}>Password</FormLabel>
+                    <Input 
+                      name="loginPassword" 
+                      type="password" 
+                      placeholder="••••••••" 
+                      required 
+                      size={{ base: "md", md: "lg" }}
+                      fontSize={{ base: "16px", md: "md" }}
+                    />
                   </FormControl>
-                  <Button colorScheme="teal" type="submit">Login</Button>
+                  <Button 
+                    colorScheme="teal" 
+                    type="submit" 
+                    size={{ base: "md", md: "lg" }}
+                    fontSize={{ base: "sm", md: "md" }}
+                    mt={2}
+                  >
+                    Login
+                  </Button>
                 </Stack>
               </form>
             </TabPanel>
-            <TabPanel>
+            <TabPanel px={{ base: 0, md: 2 }}>
               <form onSubmit={handleRegister}>
-                <Stack spacing={4}>
+                <Stack spacing={{ base: 3, md: 4 }}>
                   <FormControl>
-                    <FormLabel>Name</FormLabel>
-                    <Input name="regName" placeholder="Your name" required />
+                    <FormLabel fontSize={{ base: "sm", md: "md" }}>Name</FormLabel>
+                    <Input 
+                      name="regName" 
+                      placeholder="Your name" 
+                      required 
+                      size={{ base: "md", md: "lg" }}
+                      fontSize={{ base: "16px", md: "md" }}
+                    />
                   </FormControl>
                   <FormControl>
-                    <FormLabel>Email</FormLabel>
-                    <Input name="regEmail" type="email" placeholder="you@example.com" required />
+                    <FormLabel fontSize={{ base: "sm", md: "md" }}>Email</FormLabel>
+                    <Input 
+                      name="regEmail" 
+                      type="email" 
+                      placeholder="you@example.com" 
+                      required 
+                      size={{ base: "md", md: "lg" }}
+                      fontSize={{ base: "16px", md: "md" }}
+                    />
                   </FormControl>
                   <FormControl>
-                    <FormLabel>Password</FormLabel>
-                    <Input name="regPassword" type="password" placeholder="Create a password" required />
+                    <FormLabel fontSize={{ base: "sm", md: "md" }}>Password</FormLabel>
+                    <Input 
+                      name="regPassword" 
+                      type="password" 
+                      placeholder="Create a password" 
+                      required 
+                      size={{ base: "md", md: "lg" }}
+                      fontSize={{ base: "16px", md: "md" }}
+                    />
                   </FormControl>
-                  <Button colorScheme="teal" type="submit">Create account</Button>
+                  <Button 
+                    colorScheme="teal" 
+                    type="submit" 
+                    size={{ base: "md", md: "lg" }}
+                    fontSize={{ base: "sm", md: "md" }}
+                    mt={2}
+                  >
+                    Create account
+                  </Button>
                 </Stack>
               </form>
             </TabPanel>

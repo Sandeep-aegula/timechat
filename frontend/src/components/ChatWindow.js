@@ -15,10 +15,11 @@ const ChatWindow = ({
   setFile,
   isLoading,
   isUploading,
+  typingUsers = [],
   onSendMessage,
+  onTyping,
   onLeaveChat,
-  onGenerateChartCode,
-  onBackToSidebar, // New prop for mobile back button
+  onBackToSidebar,
 }) => {
   if (!selectedChat) {
     return (
@@ -64,15 +65,20 @@ const ChatWindow = ({
       <ChatHeader
         selectedChat={selectedChat}
         onLeaveChat={onLeaveChat}
-        onGenerateChartCode={onGenerateChartCode}
         onBackToSidebar={onBackToSidebar}
       />
       
-      <MessageList
-        messages={messages}
-        currentUser={currentUser}
-        isLoading={isLoading}
-      />
+      <Box flex="1" overflowY="auto" css={{
+        '&::-webkit-scrollbar': { width: '6px' },
+        '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '3px' },
+      }}>
+        <MessageList
+          messages={messages}
+          currentUser={currentUser}
+          isLoading={isLoading}
+          typingUsers={typingUsers}
+        />
+      </Box>
       
       {selectedChat && (
         <MessageInput
@@ -83,7 +89,7 @@ const ChatWindow = ({
           isLoading={isLoading}
           isUploading={isUploading}
           onSendMessage={onSendMessage}
-          onGenerateChartCode={onGenerateChartCode}
+          onTyping={onTyping}
         />
       )}
     </VStack>

@@ -1,0 +1,28 @@
+{
+  "name": "timechat",
+  "version": "1.0.0",
+  "description": "TimeChat - 5-hour temporary chat application",
+  "main": "index.js",
+  "scripts": {
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "build": "cd frontend && npm run build",
+    "start": "npm run start:backend",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "prod": "cd backend && npm run prod",
+    "deploy": "npm run build && npm run prod"
+  },
+  "keywords": ["chat", "real-time", "socket.io", "temporary", "mern"],
+  "author": "Sandeep-aegula",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

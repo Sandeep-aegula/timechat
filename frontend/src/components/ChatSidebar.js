@@ -1,15 +1,18 @@
 import React from 'react';
 import {
   Box,
-  Button,
   HStack,
   Text,
   VStack,
   Divider,
   Avatar,
-  Flex,
-  Badge,
+  Button,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from '@chakra-ui/react';
+import { EditIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import UserSearch from './UserSearch';
 import TempCodeManager from './TempCodeManager';
 
@@ -30,6 +33,7 @@ const ChatSidebar = ({
   onSelectChat,
   onGenerateTempCode,
   onJoinWithTempCode,
+  onOpenProfileModal,
 }) => {
   return (
     <Box 
@@ -40,23 +44,33 @@ const ChatSidebar = ({
       borderRightWidth={{ lg: "1px" }}
     >
       <VStack align="stretch" spacing={{ base: 3, md: 4 }} height="full">
-        {/* User info */}
+        {/* User info with profile menu */}
         <HStack justify="space-between" flexShrink={0}>
-          <HStack spacing={{ base: 2, md: 3 }}>
+          <HStack spacing={{ base: 2, md: 3 }} flex="1">
             <Avatar name={user.name} size={{ base: "sm", md: "md" }} />
-            <Text fontWeight="semibold" fontSize={{ base: "sm", md: "md" }} isTruncated>
-              {user.name}
-            </Text>
+            <VStack align="start" spacing={0} flex="1" minW={0}>
+              <Text fontWeight="semibold" fontSize={{ base: "sm", md: "md" }} isTruncated>
+                {user.name}
+              </Text>
+              <Text fontSize="xs" color="gray.500" isTruncated>
+                {user.email}
+              </Text>
+            </VStack>
           </HStack>
-          <Text 
-            fontSize={{ base: "xs", md: "sm" }} 
-            color="blue.500" 
-            cursor="pointer" 
-            onClick={onLogout}
-            flexShrink={0}
-          >
-            Logout
-          </Text>
+
+          {/* Menu for profile and logout */}
+          <Menu>
+            <MenuButton as={Button} size="sm" variant="ghost" rightIcon={<ChevronDownIcon />}>
+            </MenuButton>
+            <MenuList>
+              <MenuItem icon={<EditIcon />} onClick={onOpenProfileModal}>
+                Edit Profile
+              </MenuItem>
+              <MenuItem onClick={onLogout}>
+                Logout
+              </MenuItem>
+            </MenuList>
+          </Menu>
         </HStack>
 
         <Divider />

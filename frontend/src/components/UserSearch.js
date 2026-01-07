@@ -44,75 +44,116 @@ const UserSearch = ({
   
   return (
     <>
-      <VStack spacing={3}>
+      <VStack spacing={{ base: 2, md: 3 }}>
         {/* Create New Chat Button */}
         <Button 
-          size="sm" 
+          size={{ base: "sm", md: "md" }}
           colorScheme="blue" 
           width="full" 
-          leftIcon={<AddIcon />}
+          leftIcon={<AddIcon boxSize={{ base: "10px", md: "12px" }} />}
           onClick={onOpen}
+          fontSize={{ base: "sm", md: "md" }}
         >
           Create New Chat
         </Button>
         
         {/* Divider and User Search for Direct Messages */}
-        <Text fontSize="sm" color="gray.500" textAlign="center">
+        <Text fontSize={{ base: "xs", md: "sm" }} color="gray.500" textAlign="center">
           Or search to start direct message:
         </Text>
         
-        <InputGroup>
+        <InputGroup size={{ base: "sm", md: "md" }}>
           <Input
             placeholder="Search users for DM..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' ? onSearchUsers() : null}
+            fontSize={{ base: "16px", md: "md" }}
           />
           <InputRightElement>
-            <IconButton aria-label="Search" size="sm" onClick={onSearchUsers}>
-              <SearchIcon />
+            <IconButton 
+              aria-label="Search" 
+              size={{ base: "xs", md: "sm" }} 
+              onClick={onSearchUsers}
+            >
+              <SearchIcon boxSize={{ base: "12px", md: "14px" }} />
             </IconButton>
           </InputRightElement>
         </InputGroup>
       </VStack>
       
       {searchResults.length > 0 && (
-        <Box borderWidth="1px" rounded="md" p={2} maxH="160px" overflowY="auto">
-          <Text fontWeight="semibold" mb={1}>Start a chat</Text>
+        <Box 
+          borderWidth="1px" 
+          rounded="md" 
+          p={{ base: 1.5, md: 2 }} 
+          maxH={{ base: "120px", md: "160px" }} 
+          overflowY="auto"
+          mt={2}
+        >
+          <Text 
+            fontWeight="semibold" 
+            mb={1} 
+            fontSize={{ base: "xs", md: "sm" }}
+          >
+            Start a chat
+          </Text>
           {searchResults.map((u) => (
             <HStack key={u._id} justify="space-between" py={1}>
-              <Text>{u.name}</Text>
-              <Button size="xs" onClick={() => onStartChat(u._id)}>Chat</Button>
+              <Text 
+                fontSize={{ base: "sm", md: "md" }} 
+                isTruncated 
+                flex={1}
+              >
+                {u.name}
+              </Text>
+              <Button 
+                size="xs" 
+                onClick={() => onStartChat(u._id)}
+                fontSize={{ base: "xs", md: "sm" }}
+              >
+                Chat
+              </Button>
             </HStack>
           ))}
         </Box>
       )}
       
       {/* Create New Chat Modal */}
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={onClose} size={{ base: "xs", md: "md" }} isCentered>
         <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Create Your Chat</ModalHeader>
+        <ModalContent mx={{ base: 4, md: 0 }}>
+          <ModalHeader fontSize={{ base: "lg", md: "xl" }}>
+            Create Your Chat
+          </ModalHeader>
           <ModalBody>
-            <Text fontSize="sm" color="gray.600" mb={3}>
+            <Text fontSize={{ base: "xs", md: "sm" }} color="gray.600" mb={3}>
               Create a new chat room. You'll be the only member initially, 
               then you can generate a code to invite others to join.
             </Text>
             <Input
-              placeholder="Enter chat name (e.g., 'Study Group', 'Gaming Squad')"
+              placeholder="Enter chat name"
               value={newChatName}
               onChange={(e) => setNewChatName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' ? handleCreateNewChat() : null}
+              fontSize={{ base: "16px", md: "md" }}
+              size={{ base: "md", md: "lg" }}
             />
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose}>
+            <Button 
+              variant="ghost" 
+              mr={3} 
+              onClick={onClose}
+              size={{ base: "sm", md: "md" }}
+            >
               Cancel
             </Button>
             <Button 
               colorScheme="blue" 
               onClick={handleCreateNewChat}
               isDisabled={!newChatName.trim()}
+              size={{ base: "sm", md: "md" }}
             >
               Create My Chat
             </Button>

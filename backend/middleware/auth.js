@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const User = require('../models/userModel');
 
 const protect = async (req, res, next) => {
   let token;
@@ -22,16 +22,23 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ error: 'User not found' });
       }
 
-      next();
+      return next();
     } catch (error) {
-      console.error('Auth middleware error:', error.message);
+      console.error('Auth middleware error:', error.name, error.message);
+      
+      // Provide specific error messages
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ error: 'Token expired, please login again' });
+      } else if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({ error: 'Invalid token, please login again' });
+      }
+      
       return res.status(401).json({ error: 'Not authorized, token failed' });
     }
   }
 
-  if (!token) {
-    return res.status(401).json({ error: 'Not authorized, no token' });
-  }
+  // No token provided
+  return res.status(401).json({ error: 'Not authorized, no token' });
 };
 
 // Generate JWT token

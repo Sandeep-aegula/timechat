@@ -44,82 +44,164 @@ const TempCodeManager = ({
         width="full"
         size={{ base: "sm", md: "md" }}
         isDisabled={!selectedChat}
+        whiteSpace="normal"
+        height="auto"
+        py={{ base: 2, md: 3 }}
       >
         <Text fontSize={{ base: "xs", md: "sm" }} textAlign="center">
           {selectedChat 
-            ? `Generate Invite Code for "${selectedChat.chatName}"` 
-            : 'Create a Chat First to Generate Code'
+            ? `Generate Invite Code` 
+            : 'Create a Chat First'
           }
         </Text>
       </Button>
       
       {!selectedChat && (
-        <Box borderWidth="1px" rounded="md" p={3} bg="yellow.50" width="full">
-          <Text fontSize="sm" color="orange.700" textAlign="center" fontWeight="medium">
-            📝 Step 1: Click "Create New Chat" above
-          </Text>
-          <Text fontSize="sm" color="orange.700" textAlign="center">
-            📋 Step 2: Select your chat from the list
-          </Text>
-          <Text fontSize="sm" color="orange.700" textAlign="center">
-            🔗 Step 3: Generate invite code to share
-          </Text>
+        <Box 
+          borderWidth="1px" 
+          rounded="md" 
+          p={{ base: 2, md: 3 }} 
+          bg="yellow.50" 
+          width="full"
+        >
+          <VStack spacing={1}>
+            <Text fontSize={{ base: "xs", md: "sm" }} color="orange.700" textAlign="center" fontWeight="medium">
+              📝 Create a chat above
+            </Text>
+            <Text fontSize={{ base: "xs", md: "sm" }} color="orange.700" textAlign="center">
+              📋 Select it from the list
+            </Text>
+            <Text fontSize={{ base: "xs", md: "sm" }} color="orange.700" textAlign="center">
+              🔗 Generate invite code
+            </Text>
+          </VStack>
         </Box>
       )}
       
       {generatedCode && selectedChat && (
-        <Box borderWidth="2px" rounded="md" p={4} bg="green.50" borderColor="green.200" width="full">
-          <Text fontWeight="bold" fontSize="md" color="green.700" textAlign="center">🎉 Invite Code Ready!</Text>
-          <Text fontFamily="mono" fontSize="xl" mt={2} bg="white" p={3} rounded="md" textAlign="center" fontWeight="bold">
+        <Box 
+          borderWidth="2px" 
+          rounded="md" 
+          p={{ base: 3, md: 4 }} 
+          bg="green.50" 
+          borderColor="green.200" 
+          width="full"
+        >
+          <Text 
+            fontWeight="bold" 
+            fontSize={{ base: "sm", md: "md" }} 
+            color="green.700" 
+            textAlign="center"
+          >
+            🎉 Invite Code Ready!
+          </Text>
+          <Text 
+            fontFamily="mono" 
+            fontSize={{ base: "lg", md: "xl" }} 
+            mt={2} 
+            bg="white" 
+            p={{ base: 2, md: 3 }} 
+            rounded="md" 
+            textAlign="center" 
+            fontWeight="bold"
+            letterSpacing="wider"
+          >
             {generatedCode.code}
           </Text>
-          <Text fontSize="sm" color="green.600" mt={2} textAlign="center" fontWeight="medium">
-            Share this code with friends to join "{generatedCode.chatName}"
+          <Text 
+            fontSize={{ base: "xs", md: "sm" }} 
+            color="green.600" 
+            mt={2} 
+            textAlign="center" 
+            fontWeight="medium"
+            noOfLines={2}
+          >
+            Share to join "{generatedCode.chatName}"
           </Text>
-          <Text fontSize="xs" color="gray.500" textAlign="center" mt={1}>
+          <Text 
+            fontSize={{ base: "2xs", md: "xs" }} 
+            color="gray.500" 
+            textAlign="center" 
+            mt={1}
+          >
             Expires: {new Date(generatedCode.expiresAt).toLocaleTimeString()}
           </Text>
         </Box>
       )}
       
       {/* Divider */}
-      <Box width="full" textAlign="center" py={2}>
-        <Text fontSize="sm" color="gray.400" fontWeight="medium">OR</Text>
+      <Box width="full" textAlign="center" py={{ base: 1, md: 2 }}>
+        <Text fontSize={{ base: "xs", md: "sm" }} color="gray.400" fontWeight="medium">
+          OR
+        </Text>
       </Box>
       
       {/* Join someone else's chat */}
-      <Text fontSize="sm" color="gray.700" fontWeight="medium" textAlign="center">
+      <Text 
+        fontSize={{ base: "xs", md: "sm" }} 
+        color="gray.700" 
+        fontWeight="medium" 
+        textAlign="center"
+      >
         Join Someone Else's Chat:
       </Text>
       
-      <InputGroup>
+      <InputGroup size={{ base: "sm", md: "md" }}>
         <Input
-          placeholder="Enter invite code from a friend"
+          placeholder="Enter invite code"
           value={tempCodeInput}
-          onChange={(e) => setTempCodeInput(e.target.value)}
+          onChange={(e) => setTempCodeInput(e.target.value.toUpperCase())}
           onKeyDown={(e) => e.key === 'Enter' ? handleJoinChat() : null}
+          fontSize={{ base: "16px", md: "md" }}
+          textTransform="uppercase"
+          letterSpacing="wide"
         />
-        <InputRightElement width="4.5rem">
-          <Button h="1.75rem" size="sm" onClick={handleJoinChat}>
+        <InputRightElement width={{ base: "3.5rem", md: "4.5rem" }}>
+          <Button 
+            h={{ base: "1.5rem", md: "1.75rem" }} 
+            size="sm" 
+            onClick={handleJoinChat}
+            fontSize={{ base: "xs", md: "sm" }}
+          >
             Join
           </Button>
         </InputRightElement>
       </InputGroup>
       
       {selectedChat && (
-        <Box borderWidth="1px" rounded="md" p={2} bg="blue.50" width="full">
-          <Text fontSize="sm" color="blue.700" textAlign="center" fontWeight="medium">
-            📱 Current: {selectedChat.chatName}
+        <Box 
+          borderWidth="1px" 
+          rounded="md" 
+          p={2} 
+          bg="blue.50" 
+          width="full"
+        >
+          <Text 
+            fontSize={{ base: "xs", md: "sm" }} 
+            color="blue.700" 
+            textAlign="center" 
+            fontWeight="medium"
+            noOfLines={1}
+          >
+            📱 {selectedChat.chatName}
           </Text>
-          <Text fontSize="xs" color="blue.600" textAlign="center">
-            {selectedChat.users?.length || 1} member(s) • Max 50 members
+          <Text 
+            fontSize={{ base: "2xs", md: "xs" }} 
+            color="blue.600" 
+            textAlign="center"
+          >
+            {selectedChat.users?.length || 1}/50 members
           </Text>
         </Box>
       )}
       
       {!selectedChat && chats && chats.length > 0 && (
-        <Text fontSize="sm" color="blue.600" textAlign="center">
-          👆 Select a chat above to generate its invite code
+        <Text 
+          fontSize={{ base: "xs", md: "sm" }} 
+          color="blue.600" 
+          textAlign="center"
+        >
+          👆 Select a chat to generate its code
         </Text>
       )}
     </VStack>

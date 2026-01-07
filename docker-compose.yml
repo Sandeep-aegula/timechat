@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  timechat:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI=mongodb+srv://Sandeep:237y1a66b0@cluster0.oy6zl.mongodb.net/timechat?appName=Cluster0
+      - JWT_SECRET=92dd7fb2b4cb354fb2e144b1bfac08bfa504dca0f00edacb2b952dc233644a8fa58002e6e6e6647fb44de8118ebbda6baff64e46cbcf5ab625fad078258883e9
+      - FRONTEND_URL=https://yourdomain.com
+      - CORS_ORIGIN=https://yourdomain.com
+    volumes:
+      - uploads:/app/backend/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  uploads:

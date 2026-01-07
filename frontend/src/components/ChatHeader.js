@@ -5,16 +5,22 @@ import {
   IconButton,
   Text,
   Button,
-  Avatar,
-  AvatarGroup,
-  Tooltip,
   VStack,
   Flex,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  useToast,
 } from '@chakra-ui/react';
-import { ArrowBackIcon } from '@chakra-ui/icons';
+import { ArrowBackIcon, ChevronDownIcon, DownloadIcon } from '@chakra-ui/icons';
+import axios from 'axios';
 
-const ChatHeader = ({ selectedChat, onLeaveChat, onGenerateChartCode, onBackToSidebar }) => {
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+
+const ChatHeader = ({ selectedChat, onLeaveChat, onBackToSidebar }) => {
   const [timeRemaining, setTimeRemaining] = useState('');
+  const toast = useToast();
 
   useEffect(() => {
     if (!selectedChat?.expiresAt) return;
@@ -44,6 +50,47 @@ const ChatHeader = ({ selectedChat, onLeaveChat, onGenerateChartCode, onBackToSi
 
     return () => clearInterval(interval);
   }, [selectedChat?.expiresAt]);
+
+  const handleDownloadChat = async () => {
+    try {
+      const token = localStorage.getItem('chat_token');
+      const response = await axios.get(
+        `${API_BASE}/api/chat/${selectedChat._id}/download`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      
+      // Create blob and download
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], {
+        type: 'application/json',
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${selectedChat.chatName.replace(/[^a-z0-9]/gi, '_')}_chat_export.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: 'Chat exported successfully!',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: 'Failed to download chat',
+        description: error.response?.data?.error || error.message,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   if (!selectedChat) {
     return (
       <Box p={{ base: 3, md: 4 }} borderBottomWidth="1px" textAlign="center">
@@ -93,14 +140,22 @@ const ChatHeader = ({ selectedChat, onLeaveChat, onGenerateChartCode, onBackToSi
         </HStack>
         
         <HStack spacing={1}>
-          <Button 
-            size={{ base: "xs", md: "sm" }} 
-            colorScheme="green" 
-            onClick={onGenerateChartCode}
-          >
-            <Text display={{ base: "none", md: "block" }}>Chart Code</Text>
-            <Text display={{ base: "block", md: "none" }}>📊</Text>
-          </Button>
+          <Menu>
+            <MenuButton
+              as={Button}
+              size={{ base: "xs", md: "sm" }}
+              variant="outline"
+              rightIcon={<ChevronDownIcon />}
+            >
+              <Text display={{ base: "none", md: "block" }}>Options</Text>
+              <Text display={{ base: "block", md: "none" }}>⋮</Text>
+            </MenuButton>
+            <MenuList>
+              <MenuItem icon={<DownloadIcon />} onClick={handleDownloadChat}>
+                Download Chat History
+              </MenuItem>
+            </MenuList>
+          </Menu>
           <Button 
             size={{ base: "xs", md: "sm" }} 
             colorScheme="red" 
