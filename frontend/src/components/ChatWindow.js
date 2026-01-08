@@ -37,7 +37,7 @@ const ChatWindow = ({
             fontWeight="bold" 
             color="gray.700"
           >
-            Welcome to MERN Chat!
+            Welcome to TimeChat
           </Text>
           <Text 
             fontSize={{ base: "sm", md: "md" }} 
