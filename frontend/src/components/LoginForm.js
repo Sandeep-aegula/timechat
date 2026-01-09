@@ -48,7 +48,7 @@ const LoginForm = ({ onLogin, onRegister }) => {
         <VStack spacing={{ base: 4, md: 6 }} mb={{ base: 4, md: 6 }}>
           <Text fontSize={{ base: "3xl", md: "4xl" }}>💬</Text>
           <Heading size={{ base: "lg", md: "xl" }} textAlign="center" color="gray.800">
-            MERN Chat
+            TimeChat
           </Heading>
           <Text 
             fontSize={{ base: "sm", md: "md" }} 

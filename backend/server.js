@@ -16,7 +16,7 @@ const messageRoutes = require('./routes/message');
 const tempCodeRoutes = require('./routes/tempCode');
 
 // Connect to database
-connectDB();
+// connectDB(); // Remove top-level connection
 
 const app = express();
 const server = http.createServer(app);
@@ -60,17 +60,28 @@ app.use(express.urlencoded({ extended: true }));
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// DB connection middleware
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('DB connection failed:', error);
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/message', messageRoutes);
 app.use('/api/temp-code', tempCodeRoutes);
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
 
 // Error handler middleware
 app.use(errorHandler);
@@ -177,6 +188,9 @@ io.on('connection', (socket) => {
 // Cleanup expired chats and temp codes (runs every hour)
 const cleanupExpiredData = async () => {
   try {
+    // Ensure database is connected before cleanup
+    await connectDB();
+    
     const Chat = require('./models/chatModel');
     const TempCode = require('./models/tempCodeModel');
     const Message = require('./models/messageModel');
