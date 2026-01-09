@@ -37,13 +37,15 @@ const ChatSidebar = ({
 }) => {
   return (
     <Box 
-      height="100vh" 
-      overflowY="auto"
+      height="100%" 
+      display="flex"
+      flexDirection="column"
+      overflow="hidden"
       p={{ base: 3, md: 4 }}
       bg="gray.50"
       borderRightWidth={{ lg: "1px" }}
     >
-      <VStack align="stretch" spacing={{ base: 3, md: 4 }} height="full">
+      <VStack align="stretch" spacing={{ base: 3, md: 4 }} height="100%" overflow="hidden">
         {/* User info with profile menu */}
         <HStack justify="space-between" flexShrink={0}>
           <HStack spacing={{ base: 2, md: 3 }} flex="1">

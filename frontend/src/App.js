@@ -412,11 +412,11 @@ function App() {
   }
 
   return (
-    <Box bg="gray.100" minH="100vh" py={{ base: 0, md: 4 }}>
+    <Box bg="gray.100" height="100vh" overflow="hidden" py={{ base: 0, md: 4 }}>
       <Box
         display="flex"
         flexDirection={{ base: "column", lg: "row" }}
-        height={{ base: "100vh", md: "calc(100vh - 32px)" }}
+        height={{ base: "100%", md: "calc(100% - 32px)" }}
         maxW={{ base: "100%", xl: "1400px" }}
         mx="auto"
         bg="white"
@@ -426,11 +426,12 @@ function App() {
       >
       {/* Mobile/Tablet: Show sidebar or chat, Desktop: Show both */}
       <Box 
-        display={{ base: selectedChat ? "none" : "block", lg: "block" }}
+        display={{ base: selectedChat ? "none" : "flex", lg: "flex" }}
         width={{ base: "100%", lg: "32%" }}
         minWidth={{ lg: "320px" }}
         maxWidth={{ lg: "360px" }}
         height={{ base: selectedChat ? "0" : "100%", lg: "100%" }}
+        overflow="hidden"
         borderRightWidth={{ lg: "1px" }}
         bg="gray.50"
       >
@@ -458,9 +459,9 @@ function App() {
       {/* Chat Window */}
       <Box 
         flex="1"
-        display={{ base: selectedChat ? "block" : "none", lg: "block" }}
+        display={{ base: selectedChat ? "flex" : "none", lg: "flex" }}
         height="100%"
-        position="relative"
+        overflow="hidden"
         bg="white"
       >
         <ChatWindow

@@ -3,6 +3,11 @@
 	box-sizing: border-box;
 }
 
+html, body, #root {
+	height: 100%;
+	overflow: hidden;
+}
+
 body {
 	background: linear-gradient(135deg, #0f172a 0%, #111827 40%, #0d9488 100%);
 	min-height: 100vh;

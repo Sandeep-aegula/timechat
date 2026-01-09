@@ -61,17 +61,33 @@ const ChatWindow = ({
   }
 
   return (
-    <VStack spacing={0} height="100vh" flex="1">
-      <ChatHeader
-        selectedChat={selectedChat}
-        onLeaveChat={onLeaveChat}
-        onBackToSidebar={onBackToSidebar}
-      />
+    <Flex 
+      direction="column" 
+      height="100%" 
+      width="100%"
+      overflow="hidden"
+    >
+      {/* Fixed Header */}
+      <Box flexShrink={0} bg="white">
+        <ChatHeader
+          selectedChat={selectedChat}
+          onLeaveChat={onLeaveChat}
+          onBackToSidebar={onBackToSidebar}
+        />
+      </Box>
       
-      <Box flex="1" overflowY="auto" css={{
-        '&::-webkit-scrollbar': { width: '6px' },
-        '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '3px' },
-      }}>
+      {/* Scrollable Message Area */}
+      <Box 
+        flex="1" 
+        overflowY="auto" 
+        overflowX="hidden"
+        minHeight={0}
+        bg="gray.50"
+        css={{
+          '&::-webkit-scrollbar': { width: '6px' },
+          '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '3px' },
+        }}
+      >
         <MessageList
           messages={messages}
           currentUser={currentUser}
@@ -80,19 +96,22 @@ const ChatWindow = ({
         />
       </Box>
       
+      {/* Fixed Input at Bottom */}
       {selectedChat && (
-        <MessageInput
-          newMessage={newMessage}
-          setNewMessage={setNewMessage}
-          file={file}
-          setFile={setFile}
-          isLoading={isLoading}
-          isUploading={isUploading}
-          onSendMessage={onSendMessage}
-          onTyping={onTyping}
-        />
+        <Box flexShrink={0} bg="white">
+          <MessageInput
+            newMessage={newMessage}
+            setNewMessage={setNewMessage}
+            file={file}
+            setFile={setFile}
+            isLoading={isLoading}
+            isUploading={isUploading}
+            onSendMessage={onSendMessage}
+            onTyping={onTyping}
+          />
+        </Box>
       )}
-    </VStack>
+    </Flex>
   );
 };
 
