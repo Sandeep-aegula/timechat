@@ -44,69 +44,84 @@ const ChatSidebar = ({
       p={{ base: 3, md: 4 }}
       bg="gray.50"
       borderRightWidth={{ lg: "1px" }}
+      width="100%"
     >
-      <VStack align="stretch" spacing={{ base: 3, md: 4 }} height="100%" overflow="hidden">
-        {/* User info with profile menu */}
-        <HStack justify="space-between" flexShrink={0}>
-          <HStack spacing={{ base: 2, md: 3 }} flex="1">
-            <Avatar name={user.name} size={{ base: "sm", md: "md" }} />
-            <VStack align="start" spacing={0} flex="1" minW={0}>
-              <Text fontWeight="semibold" fontSize={{ base: "sm", md: "md" }} isTruncated>
-                {user.name}
-              </Text>
-              <Text fontSize="xs" color="gray.500" isTruncated>
-                {user.email}
-              </Text>
-            </VStack>
-          </HStack>
-
-          {/* Menu for profile and logout */}
-          <Menu>
-            <MenuButton as={Button} size="sm" variant="ghost" rightIcon={<ChevronDownIcon />}>
-            </MenuButton>
-            <MenuList>
-              <MenuItem icon={<EditIcon />} onClick={onOpenProfileModal}>
-                Edit Profile
-              </MenuItem>
-              <MenuItem onClick={onLogout}>
-                Logout
-              </MenuItem>
-            </MenuList>
-          </Menu>
+      {/* Fixed User Header */}
+      <HStack justify="space-between" flexShrink={0} mb={{ base: 2, md: 3 }}>
+        <HStack spacing={{ base: 2, md: 3 }} flex="1">
+          <Avatar name={user.name} size={{ base: "sm", md: "md" }} />
+          <VStack align="start" spacing={0} flex="1" minW={0}>
+            <Text fontWeight="semibold" fontSize={{ base: "sm", md: "md" }} isTruncated>
+              {user.name}
+            </Text>
+            <Text fontSize="xs" color="gray.500" isTruncated>
+              {user.email}
+            </Text>
+          </VStack>
         </HStack>
 
-        <Divider />
+        {/* Menu for profile and logout */}
+        <Menu>
+          <MenuButton as={Button} size="sm" variant="ghost" rightIcon={<ChevronDownIcon />}>
+          </MenuButton>
+          <MenuList>
+            <MenuItem icon={<EditIcon />} onClick={onOpenProfileModal}>
+              Edit Profile
+            </MenuItem>
+            <MenuItem onClick={onLogout}>
+              Logout
+            </MenuItem>
+          </MenuList>
+        </Menu>
+      </HStack>
 
-        {/* User Search */}
-        <UserSearch
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          searchResults={searchResults}
-          onSearchUsers={onSearchUsers}
-          onStartChat={onStartChat}
-          onCreateNewChat={onCreateNewChat}
-        />
+      <Divider mb={{ base: 2, md: 3 }} />
 
-        <Divider />
+      {/* Scrollable Content Area */}
+      <Box 
+        flex="1" 
+        overflowY="auto" 
+        overflowX="hidden"
+        css={{
+          '&::-webkit-scrollbar': { width: '4px' },
+          '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '2px' },
+        }}
+      >
+        <VStack align="stretch" spacing={{ base: 3, md: 4 }}>
+          {/* User Search */}
+          <UserSearch
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            searchResults={searchResults}
+            onSearchUsers={onSearchUsers}
+            onStartChat={onStartChat}
+            onCreateNewChat={onCreateNewChat}
+          />
 
-        {/* Temporary Code Manager */}
-        <TempCodeManager
-          tempCodeInput={tempCodeInput}
-          setTempCodeInput={setTempCodeInput}
-          generatedCode={generatedCode}
-          chatMembers={selectedChat?.users}
-          selectedChat={selectedChat}
-          chats={chats}
-          onGenerateTempCode={onGenerateTempCode}
-          onJoinWithTempCode={onJoinWithTempCode}
-        />
+          <Divider />
 
-        <Divider />
+          {/* Temporary Code Manager - Now scrollable */}
+          <Box bg="white" p={{ base: 2, md: 3 }} rounded="md" borderWidth="1px">
+            <Text fontWeight="semibold" fontSize={{ base: "sm", md: "md" }} mb={2} color="blue.600">
+              🔗 Invite Codes
+            </Text>
+            <TempCodeManager
+              tempCodeInput={tempCodeInput}
+              setTempCodeInput={setTempCodeInput}
+              generatedCode={generatedCode}
+              chatMembers={selectedChat?.users}
+              selectedChat={selectedChat}
+              chats={chats}
+              onGenerateTempCode={onGenerateTempCode}
+              onJoinWithTempCode={onJoinWithTempCode}
+            />
+          </Box>
 
-        {/* Chat List */}
-        <VStack align="stretch" spacing={2} flex="1" minHeight={0}>
-          <Text fontWeight="semibold" fontSize={{ base: "sm", md: "md" }}>My Chats</Text>
-          <Box flex="1" overflowY="auto" minHeight={0}>
+          <Divider />
+
+          {/* Chat List */}
+          <VStack align="stretch" spacing={2}>
+            <Text fontWeight="semibold" fontSize={{ base: "sm", md: "md" }}>My Chats</Text>
             {chats.length === 0 ? (
               <Box 
                 p={{ base: 4, md: 6 }} 
@@ -203,9 +218,9 @@ const ChatSidebar = ({
                 );
               })
             )}
-          </Box>
+          </VStack>
         </VStack>
-      </VStack>
+      </Box>
     </Box>
   );
 };
