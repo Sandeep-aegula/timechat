@@ -10,9 +10,12 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  MenuDivider,
+  IconButton,
   useToast,
+  Icon,
 } from '@chakra-ui/react';
-import { ArrowBackIcon, ChevronDownIcon, DownloadIcon } from '@chakra-ui/icons';
+import { ArrowBackIcon, DownloadIcon } from '@chakra-ui/icons';
 import axios from 'axios';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
@@ -141,31 +144,44 @@ const ChatHeader = ({ selectedChat, onLeaveChat, onBackToSidebar }) => {
           </VStack>
         </HStack>
         
-        <HStack spacing={1}>
+        <HStack spacing={{ base: 1, md: 2 }}>
           <Menu>
             <MenuButton
-              as={Button}
-              size={{ base: "xs", md: "sm" }}
-              variant="outline"
-              rightIcon={<ChevronDownIcon />}
-            >
-              <Text display={{ base: "none", md: "block" }}>Options</Text>
-              <Text display={{ base: "block", md: "none" }}>⋮</Text>
-            </MenuButton>
-            <MenuList>
-              <MenuItem icon={<DownloadIcon />} onClick={handleDownloadChat}>
-                Download Chat History
+              as={IconButton}
+              icon={
+                <Icon viewBox="0 0 24 24" boxSize={{ base: 5, md: 6 }}>
+                  <path fill="currentColor" d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                </Icon>
+              }
+              variant="ghost"
+              size={{ base: "sm", md: "md" }}
+              aria-label="Chat options"
+              _hover={{ bg: "gray.100" }}
+            />
+            <MenuList minW="180px" zIndex={100}>
+              <MenuItem 
+                icon={<DownloadIcon />} 
+                onClick={handleDownloadChat}
+                fontSize={{ base: "sm", md: "md" }}
+              >
+                Download Chat
+              </MenuItem>
+              <MenuDivider />
+              <MenuItem 
+                icon={
+                  <Icon viewBox="0 0 24 24" boxSize={4} color="red.500">
+                    <path fill="currentColor" d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
+                  </Icon>
+                }
+                onClick={onLeaveChat}
+                color="red.500"
+                fontSize={{ base: "sm", md: "md" }}
+                _hover={{ bg: "red.50" }}
+              >
+                Leave Chat
               </MenuItem>
             </MenuList>
           </Menu>
-          <Button 
-            size={{ base: "xs", md: "sm" }} 
-            colorScheme="red" 
-            onClick={onLeaveChat}
-          >
-            <Text display={{ base: "none", md: "block" }}>Leave</Text>
-            <Text display={{ base: "block", md: "none" }}>🚪</Text>
-          </Button>
         </HStack>
       </Flex>
     </Box>

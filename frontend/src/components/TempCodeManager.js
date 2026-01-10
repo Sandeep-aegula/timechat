@@ -8,6 +8,8 @@ import {
   Text,
   useToast,
   VStack,
+  Icon,
+  HStack,
 } from '@chakra-ui/react';
 
 const TempCodeManager = ({ 
@@ -40,18 +42,26 @@ const TempCodeManager = ({
     <VStack spacing={{ base: 2, md: 3 }}>
       <Button 
         onClick={onGenerateTempCode} 
-        colorScheme={selectedChat ? "blue" : "gray"} 
+        colorScheme={selectedChat ? "green" : "gray"} 
         width="full"
-        size={{ base: "sm", md: "md" }}
+        size={{ base: "md", md: "lg" }}
         isDisabled={!selectedChat}
         whiteSpace="normal"
         height="auto"
-        py={{ base: 2, md: 3 }}
+        py={{ base: 3, md: 4 }}
+        leftIcon={
+          <Icon viewBox="0 0 24 24" boxSize={{ base: 5, md: 6 }}>
+            <path fill="currentColor" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+          </Icon>
+        }
+        boxShadow={selectedChat ? "md" : "none"}
+        _hover={selectedChat ? { transform: "translateY(-1px)", boxShadow: "lg" } : {}}
+        transition="all 0.2s"
       >
-        <Text fontSize={{ base: "xs", md: "sm" }} textAlign="center">
+        <Text fontSize={{ base: "sm", md: "md" }} fontWeight="bold" textAlign="center">
           {selectedChat 
-            ? `Generate Invite Code` 
-            : 'Create a Chat First'
+            ? `🔗 Generate Invite Code` 
+            : '⚠️ Select a Chat First'
           }
         </Text>
       </Button>
