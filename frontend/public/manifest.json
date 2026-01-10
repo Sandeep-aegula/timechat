@@ -1,7 +1,7 @@
 {
   "short_name": "TimeChat",
   "name": "TimeChat - Secure Temporary Messaging",
-  "description": "Experience secure, temporary messaging with TimeChat. Create instant chat rooms, share files, and communicate privately with auto-expiring conversations.",
+  "description": "Create secure, temporary chat rooms that auto-expire. Share files, send voice notes, and communicate privately with real-time messaging. Your privacy matters - conversations disappear when you want them to.",
   "icons": [
     {
       "src": "chat_time.png",
@@ -11,19 +11,44 @@
     {
       "src": "chat_time.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "chat_time.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "theme_color": "#0f172a",
   "background_color": "#ffffff",
   "orientation": "portrait-primary",
-  "categories": ["communication", "social", "productivity"],
-  "lang": "en-US"
+  "categories": ["communication", "social", "productivity", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Create New Chat",
+      "short_name": "New Chat",
+      "description": "Create a new temporary chat room",
+      "url": "/?action=new-chat",
+      "icons": [{ "src": "chat_time.png", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "chat_time.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "label": "TimeChat - Secure Messaging"
+    }
+  ],
+  "related_applications": [],
+  "iarc_rating_id": "",
+  "handle_links": "preferred"
 }
