@@ -7,22 +7,43 @@ const Message = require('../models/messageModel');
 const Chat = require('../models/chatModel');
 const { protect } = require('../middleware/auth');
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+// Check if running on Vercel (serverless environment with read-only filesystem)
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
-});
+// Configure storage based on environment
+let storage;
+let uploadsDir;
+
+if (isVercel) {
+  // Use /tmp directory on Vercel (the only writable directory)
+  uploadsDir = '/tmp/uploads';
+  try {
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+  } catch (err) {
+    console.log('Could not create uploads dir in /tmp, using memory storage');
+  }
+  
+  // Use memory storage for Vercel - files should be uploaded to cloud storage
+  storage = multer.memoryStorage();
+} else {
+  // Local development - use disk storage
+  uploadsDir = path.join(__dirname, '..', 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+  
+  storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, uploadsDir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    },
+  });
+}
 
 const fileFilter = (req, file, cb) => {
   // Accept images, documents, audio files, and common file types

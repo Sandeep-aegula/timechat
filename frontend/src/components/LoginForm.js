@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -15,15 +15,23 @@ import {
   TabPanels,
   Text,
   VStack,
+  Spinner,
 } from '@chakra-ui/react';
 
 const LoginForm = ({ onLogin, onRegister }) => {
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const handleLogin = async (e) => {
     e.preventDefault();
     const form = new FormData(e.target);
     const email = form.get('loginEmail');
     const password = form.get('loginPassword');
-    onLogin({ email, password });
+    setIsLoggingIn(true);
+    try {
+      await onLogin({ email, password });
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   const handleRegister = async (e) => {
@@ -32,7 +40,12 @@ const LoginForm = ({ onLogin, onRegister }) => {
     const name = form.get('regName');
     const email = form.get('regEmail');
     const password = form.get('regPassword');
-    onRegister({ name, email, password });
+    setIsRegistering(true);
+    try {
+      await onRegister({ name, email, password });
+    } finally {
+      setIsRegistering(false);
+    }
   };
 
   return (
@@ -108,6 +121,9 @@ const LoginForm = ({ onLogin, onRegister }) => {
                     size={{ base: "md", md: "lg" }}
                     fontSize={{ base: "sm", md: "md" }}
                     mt={2}
+                    isLoading={isLoggingIn}
+                    loadingText="Logging in..."
+                    spinner={<Spinner size="sm" />}
                   >
                     Login
                   </Button>
@@ -155,6 +171,9 @@ const LoginForm = ({ onLogin, onRegister }) => {
                     size={{ base: "md", md: "lg" }}
                     fontSize={{ base: "sm", md: "md" }}
                     mt={2}
+                    isLoading={isRegistering}
+                    loadingText="Creating account..."
+                    spinner={<Spinner size="sm" />}
                   >
                     Create account
                   </Button>

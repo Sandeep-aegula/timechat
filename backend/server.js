@@ -57,8 +57,15 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve uploaded files (only in non-Vercel environments)
+// On Vercel, files should be stored in cloud storage (e.g., Cloudinary, S3)
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+if (!isVercel) {
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+} else {
+  // Serve from /tmp on Vercel (temporary storage)
+  app.use('/uploads', express.static('/tmp/uploads'));
+}
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

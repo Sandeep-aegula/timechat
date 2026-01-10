@@ -129,7 +129,10 @@ const MessageInput = ({
       borderTopWidth="1px" 
       bg="white" 
       width="100%"
-      pb={{ base: "calc(env(safe-area-inset-bottom, 0px) + 8px)", md: 4 }}
+      pb={{ base: "calc(env(safe-area-inset-bottom, 0px) + 16px)", md: 4 }}
+      position="relative"
+      zIndex={10}
+      boxShadow="0 -2px 10px rgba(0,0,0,0.05)"
     >
       {audioError && (
         <Alert status="error" size="sm" rounded="md" py={{ base: 1, md: 2 }}>

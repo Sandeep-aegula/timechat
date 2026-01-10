@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const {
   sendMessage,
   getMessages,
@@ -11,16 +12,32 @@ const {
 } = require('../controllers/messageController');
 const { protect } = require('../middleware/authMiddleware');
 
+// Check if running on Vercel (serverless environment with read-only filesystem)
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+
 // Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+let storage;
+
+if (isVercel) {
+  // Use memory storage on Vercel - files should be uploaded to cloud storage
+  storage = multer.memoryStorage();
+} else {
+  // Local development - use disk storage
+  const uploadsDir = path.join(__dirname, '..', 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
   }
-});
+  
+  storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, uploadsDir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+}
 
 const fileFilter = (req, file, cb) => {
   // Allow images and common document types

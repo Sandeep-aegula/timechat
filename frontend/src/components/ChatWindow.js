@@ -66,9 +66,10 @@ const ChatWindow = ({
       height="100%" 
       width="100%"
       overflow="hidden"
+      position="relative"
     >
       {/* Fixed Header */}
-      <Box flexShrink={0} bg="white">
+      <Box flexShrink={0} bg="white" zIndex={5}>
         <ChatHeader
           selectedChat={selectedChat}
           onLeaveChat={onLeaveChat}
@@ -83,6 +84,7 @@ const ChatWindow = ({
         overflowX="hidden"
         minHeight={0}
         bg="gray.50"
+        pb={{ base: 2, md: 0 }}
         css={{
           '&::-webkit-scrollbar': { width: '6px' },
           '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '3px' },
@@ -96,9 +98,17 @@ const ChatWindow = ({
         />
       </Box>
       
-      {/* Fixed Input at Bottom */}
+      {/* Fixed Input at Bottom - Always visible */}
       {selectedChat && (
-        <Box flexShrink={0} bg="white">
+        <Box 
+          flexShrink={0} 
+          bg="white" 
+          position="sticky"
+          bottom={0}
+          left={0}
+          right={0}
+          zIndex={10}
+        >
           <MessageInput
             newMessage={newMessage}
             setNewMessage={setNewMessage}

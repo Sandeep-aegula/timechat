@@ -191,3 +191,35 @@ body {
 	-ms-user-select: text;
 	user-select: text;
 }
+
+/* Mobile viewport height fix - accounts for mobile browser chrome */
+@supports (height: 100dvh) {
+	html, body, #root {
+		height: 100dvh;
+	}
+}
+
+/* Ensure message input container stays at bottom on mobile */
+@media (max-width: 767px) {
+	html, body, #root {
+		position: fixed;
+		width: 100%;
+		overflow: hidden;
+	}
+	
+	/* Prevent iOS bounce scroll effect */
+	body {
+		overscroll-behavior: none;
+		-webkit-overflow-scrolling: touch;
+	}
+}
+
+/* Chat window mobile fixes */
+@media (max-width: 1023px) {
+	.chat-input-container {
+		position: sticky;
+		bottom: 0;
+		background: white;
+		z-index: 100;
+	}
+}

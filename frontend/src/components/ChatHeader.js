@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   HStack,
-  IconButton,
   Text,
   Button,
   VStack,
@@ -103,15 +102,18 @@ const ChatHeader = ({ selectedChat, onLeaveChat, onBackToSidebar }) => {
     <Box p={{ base: 3, md: 4 }} borderBottomWidth="1px" bg="white" flexShrink={0}>
       <Flex justify="space-between" align="center">
         <HStack spacing={{ base: 2, md: 3 }}>
-          {/* Mobile back button */}
-          <IconButton
+          {/* Mobile/Tablet back button - more prominent */}
+          <Button
             display={{ base: "flex", lg: "none" }}
-            size="sm"
-            variant="ghost"
+            size={{ base: "sm", md: "sm" }}
+            variant="solid"
+            colorScheme="blue"
             aria-label="Back to chats"
-            icon={<ArrowBackIcon />}
+            leftIcon={<ArrowBackIcon boxSize={{ base: 4, md: 4 }} />}
             onClick={onBackToSidebar}
-          />
+          >
+            Chats
+          </Button>
           
           <VStack align="start" spacing={0}>
             <Text 
