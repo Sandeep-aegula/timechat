@@ -20,9 +20,52 @@ import axios from 'axios';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
-const ChatHeader = ({ selectedChat, onLeaveChat, onBackToSidebar }) => {
+const ChatHeader = ({ selectedChat, onLeaveChat, onBackToSidebar, onGenerateTempCode }) => {
   const [timeRemaining, setTimeRemaining] = useState('');
   const toast = useToast();
+
+  const handleGenerateCode = async () => {
+    try {
+      const token = localStorage.getItem('chat_token');
+      const { data } = await axios.post(
+        `${API_BASE}/api/temp-code/generate`,
+        { chatId: selectedChat._id, expiryMinutes: 60 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Copy to clipboard
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(data.code);
+        toast({
+          title: '🔗 Invite Code Generated & Copied!',
+          description: `Code: ${data.code} - Share it with others!`,
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: '🔗 Invite Code Generated!',
+          description: `Code: ${data.code} - Share it with others!`,
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+      
+      if (onGenerateTempCode) {
+        onGenerateTempCode();
+      }
+    } catch (error) {
+      toast({
+        title: 'Failed to generate code',
+        description: error.response?.data?.error || error.message,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
 
   useEffect(() => {
     if (!selectedChat?.expiresAt) return;
@@ -158,7 +201,23 @@ const ChatHeader = ({ selectedChat, onLeaveChat, onBackToSidebar }) => {
               aria-label="Chat options"
               _hover={{ bg: "gray.100" }}
             />
-            <MenuList minW="180px" zIndex={100}>
+            <MenuList minW="200px" zIndex={100}>
+              {/* Generate Invite Code - Most important action */}
+              <MenuItem 
+                icon={
+                  <Icon viewBox="0 0 24 24" boxSize={4} color="green.500">
+                    <path fill="currentColor" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+                  </Icon>
+                }
+                onClick={handleGenerateCode}
+                color="green.600"
+                fontSize={{ base: "sm", md: "md" }}
+                fontWeight="medium"
+                _hover={{ bg: "green.50" }}
+              >
+                Generate Invite Code
+              </MenuItem>
+              <MenuDivider />
               <MenuItem 
                 icon={<DownloadIcon />} 
                 onClick={handleDownloadChat}
