@@ -9,7 +9,6 @@ import {
   useToast,
   VStack,
   Icon,
-  HStack,
 } from '@chakra-ui/react';
 
 const TempCodeManager = ({ 
