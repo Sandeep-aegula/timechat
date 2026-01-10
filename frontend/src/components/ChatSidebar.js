@@ -11,10 +11,17 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  IconButton,
+  Icon,
+  useToast,
+  Tooltip,
 } from '@chakra-ui/react';
 import { EditIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import axios from 'axios';
 import UserSearch from './UserSearch';
 import TempCodeManager from './TempCodeManager';
+
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
 const ChatSidebar = ({
   user,
@@ -35,6 +42,49 @@ const ChatSidebar = ({
   onJoinWithTempCode,
   onOpenProfileModal,
 }) => {
+  const toast = useToast();
+
+  const handleGenerateCodeForChat = async (e, chat) => {
+    e.stopPropagation(); // Prevent selecting the chat
+    
+    try {
+      const token = localStorage.getItem('chat_token');
+      const { data } = await axios.post(
+        `${API_BASE}/api/temp-code/generate`,
+        { chatId: chat._id, expiryMinutes: 60 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Copy to clipboard
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(data.code);
+        toast({
+          title: '🔗 Code Copied!',
+          description: `Invite code for "${chat.chatName}": ${data.code}`,
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: '🔗 Code Generated!',
+          description: `Invite code: ${data.code}`,
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Failed to generate code',
+        description: error.response?.data?.error || error.message,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   return (
     <Box 
       height="100%" 
@@ -176,44 +226,64 @@ const ChatSidebar = ({
                     transition="all 0.2s"
                     opacity={timeRemaining === 'Expired' ? 0.6 : 1}
                   >
-                    <VStack align="start" spacing={1}>
-                      <HStack justify="space-between" width="full">
-                        <Text 
-                          fontWeight={selectedChat?._id === chat._id ? "bold" : "medium"} 
-                          isTruncated
-                          fontSize={{ base: "sm", md: "md" }}
-                          color={selectedChat?._id === chat._id ? "blue.700" : "gray.800"}
-                          flex={1}
-                        >
-                          {chat.chatName}
-                        </Text>
-                        {timeRemaining && (
+                    <HStack justify="space-between" align="start" width="full">
+                      <VStack align="start" spacing={1} flex={1} minW={0}>
+                        <HStack justify="space-between" width="full">
+                          <Text 
+                            fontWeight={selectedChat?._id === chat._id ? "bold" : "medium"} 
+                            isTruncated
+                            fontSize={{ base: "sm", md: "md" }}
+                            color={selectedChat?._id === chat._id ? "blue.700" : "gray.800"}
+                            flex={1}
+                          >
+                            {chat.chatName}
+                          </Text>
+                          {timeRemaining && (
+                            <Text 
+                              fontSize="xs" 
+                              color={
+                                timeRemaining === 'Expired' ? 'red.500' : 
+                                isExpiring ? 'orange.500' : 'gray.500'
+                              }
+                              fontWeight={timeRemaining === 'Expired' ? 'bold' : 'normal'}
+                              flexShrink={0}
+                            >
+                              {timeRemaining}
+                            </Text>
+                          )}
+                        </HStack>
+                        {chat.latestMessage && (
                           <Text 
                             fontSize="xs" 
-                            color={
-                              timeRemaining === 'Expired' ? 'red.500' : 
-                              isExpiring ? 'orange.500' : 'gray.500'
-                            }
-                            fontWeight={timeRemaining === 'Expired' ? 'bold' : 'normal'}
-                            flexShrink={0}
+                            color="gray.600" 
+                            isTruncated 
                           >
-                            {timeRemaining}
+                            {chat.latestMessage.content}
                           </Text>
                         )}
-                      </HStack>
-                      {chat.latestMessage && (
-                        <Text 
-                          fontSize="xs" 
-                          color="gray.600" 
-                          isTruncated 
-                        >
-                          {chat.latestMessage.content}
+                        <Text fontSize="xs" color="gray.500">
+                          {chat.users?.length || 1} member(s)
                         </Text>
-                      )}
-                      <Text fontSize="xs" color="gray.500">
-                        {chat.users?.length || 1} member(s)
-                      </Text>
-                    </VStack>
+                      </VStack>
+                      
+                      {/* Generate Code Button */}
+                      <Tooltip label="Generate Invite Code" placement="top" hasArrow>
+                        <IconButton
+                          icon={
+                            <Icon viewBox="0 0 24 24" boxSize={{ base: 4, md: 5 }}>
+                              <path fill="currentColor" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+                            </Icon>
+                          }
+                          size="sm"
+                          colorScheme="green"
+                          variant="solid"
+                          aria-label="Generate invite code"
+                          onClick={(e) => handleGenerateCodeForChat(e, chat)}
+                          flexShrink={0}
+                          ml={2}
+                        />
+                      </Tooltip>
+                    </HStack>
                   </Box>
                 );
               })
