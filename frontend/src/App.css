@@ -201,17 +201,11 @@ body {
 
 /* Ensure message input container stays at bottom on mobile */
 @media (max-width: 767px) {
-	html, body, #root {
-		position: fixed;
-		width: 100%;
-		overflow: hidden;
-	}
-	
-	/* Prevent iOS bounce scroll effect */
-	body {
-		overscroll-behavior: none;
-		-webkit-overflow-scrolling: touch;
-	}
+  /* Prevent iOS bounce scroll effect */
+  body {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Chat window mobile fixes */
