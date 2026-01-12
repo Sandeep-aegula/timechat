@@ -412,85 +412,87 @@ function App() {
   }
 
   return (
-    <Box bg="gray.100" height="100vh" overflow="hidden" py={{ base: 0, md: 4 }}>
-      <Box
-        display="flex"
-        flexDirection={{ base: "column", lg: "row" }}
-        height={{ base: "100%", md: "calc(100% - 32px)" }}
-        maxW={{ base: "100%", xl: "1400px" }}
-        mx="auto"
-        bg="white"
-        boxShadow={{ base: 'none', md: 'xl' }}
-        borderRadius={{ base: 0, md: 'xl' }}
-        overflow="hidden"
-      >
-      {/* Mobile/Tablet: Show sidebar or chat, Desktop: Show both */}
-      <Box 
-        display={{ base: selectedChat ? "none" : "flex", lg: "flex" }}
-        width={{ base: "100%", lg: "32%" }}
-        minWidth={{ lg: "320px" }}
-        maxWidth={{ lg: "360px" }}
-        height={{ base: selectedChat ? "0" : "100%", lg: "100%" }}
-        overflow="hidden"
-        borderRightWidth={{ lg: "1px" }}
-        bg="gray.50"
-      >
-        <ChatSidebar
+    <div className="app-shell">
+      <Box bg="gray.100" style={{ height: '100dvh', minHeight: '100vh' }} overflow="hidden" py={{ base: 0, md: 4 }}>
+        <Box
+          display="flex"
+          flexDirection={{ base: "column", lg: "row" }}
+          height={{ base: "100%", md: "calc(100% - 32px)" }}
+          maxW={{ base: "100%", xl: "1400px" }}
+          mx="auto"
+          bg="white"
+          boxShadow={{ base: 'none', md: 'xl' }}
+          borderRadius={{ base: 0, md: 'xl' }}
+          overflow="hidden"
+        >
+        {/* Mobile/Tablet: Show sidebar or chat, Desktop: Show both */}
+        <Box 
+          display={{ base: selectedChat ? "none" : "flex", lg: "flex" }}
+          width={{ base: "100%", lg: "32%" }}
+          minWidth={{ lg: "320px" }}
+          maxWidth={{ lg: "360px" }}
+          height={{ base: selectedChat ? "0" : "100%", lg: "100%" }}
+          overflow="hidden"
+          borderRightWidth={{ lg: "1px" }}
+          bg="gray.50"
+        >
+          <ChatSidebar
+            user={user}
+            chats={chats}
+            selectedChat={selectedChat}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            searchResults={searchResults}
+            tempCodeInput={tempCodeInput}
+            setTempCodeInput={setTempCodeInput}
+            generatedCode={generatedCode}
+            onLogout={handleLogout}
+            onSearchUsers={handleSearchUsers}
+            onStartChat={handleStartChat}
+            onCreateNewChat={handleCreateNewChat}
+            onSelectChat={handleSelectChat}
+            onGenerateTempCode={handleGenerateTempCode}
+            onJoinWithTempCode={handleJoinWithTempCode}
+            onOpenProfileModal={openProfileModal}
+          />
+        </Box>
+        
+        {/* Chat Window */}
+        <Box 
+          flex="1"
+          display={{ base: selectedChat ? "flex" : "none", lg: "flex" }}
+          height="100%"
+          overflow="hidden"
+          bg="white"
+        >
+          <ChatWindow
+            selectedChat={selectedChat}
+            messages={messages}
+            currentUser={user}
+            newMessage={newMessage}
+            setNewMessage={setNewMessage}
+            file={file}
+            setFile={setFile}
+            isLoading={loadingMessages}
+            isUploading={isUploading || isSending}
+            typingUsers={typingUsers}
+            onSendMessage={handleSendMessage}
+            onTyping={handleTyping}
+            onLeaveChat={handleLeaveChat}
+            onBackToSidebar={() => setSelectedChat(null)}
+          />
+        </Box>
+        
+        <ProfileEditor
+          isOpen={isProfileModalOpen}
+          onClose={closeProfileModal}
           user={user}
-          chats={chats}
-          selectedChat={selectedChat}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          searchResults={searchResults}
-          tempCodeInput={tempCodeInput}
-          setTempCodeInput={setTempCodeInput}
-          generatedCode={generatedCode}
-          onLogout={handleLogout}
-          onSearchUsers={handleSearchUsers}
-          onStartChat={handleStartChat}
-          onCreateNewChat={handleCreateNewChat}
-          onSelectChat={handleSelectChat}
-          onGenerateTempCode={handleGenerateTempCode}
-          onJoinWithTempCode={handleJoinWithTempCode}
-          onOpenProfileModal={openProfileModal}
+          onUpdateProfile={handleUpdateProfile}
         />
+        <Analytics />
+        </Box>
       </Box>
-      
-      {/* Chat Window */}
-      <Box 
-        flex="1"
-        display={{ base: selectedChat ? "flex" : "none", lg: "flex" }}
-        height="100%"
-        overflow="hidden"
-        bg="white"
-      >
-        <ChatWindow
-          selectedChat={selectedChat}
-          messages={messages}
-          currentUser={user}
-          newMessage={newMessage}
-          setNewMessage={setNewMessage}
-          file={file}
-          setFile={setFile}
-          isLoading={loadingMessages}
-          isUploading={isUploading || isSending}
-          typingUsers={typingUsers}
-          onSendMessage={handleSendMessage}
-          onTyping={handleTyping}
-          onLeaveChat={handleLeaveChat}
-          onBackToSidebar={() => setSelectedChat(null)}
-        />
-      </Box>
-      
-      <ProfileEditor
-        isOpen={isProfileModalOpen}
-        onClose={closeProfileModal}
-        user={user}
-        onUpdateProfile={handleUpdateProfile}
-      />
-      <Analytics />
-      </Box>
-    </Box>
+    </div>
   );
 }
 
