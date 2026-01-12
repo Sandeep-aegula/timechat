@@ -175,7 +175,7 @@ const MessageInput = ({
           ref={fileInputRef}
           style={{ display: 'none' }}
           onChange={handleFileChange}
-          accept="image/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+          accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
         />
 
         <IconButton
