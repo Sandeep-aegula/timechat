@@ -61,60 +61,67 @@ const ChatWindow = ({
   }
 
   return (
-    <Flex 
-      direction="column" 
-      height="100%" 
-      width="100%"
-      overflow="hidden"
-      position="relative"
-    >
-      {/* Fixed Header */}
-      <Box flexShrink={0} bg="white" zIndex={5}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      width: '100%',
+      height: '100%',
+      minHeight: 0,
+      flex: 1,
+      overflow: 'hidden',
+      position: 'relative',
+    }}>
+      {/* Header always at the top */}
+      <div style={{ flexShrink: 0, background: 'white', zIndex: 5 }}>
         <ChatHeader
           selectedChat={selectedChat}
           onLeaveChat={onLeaveChat}
           onBackToSidebar={onBackToSidebar}
         />
-      </Box>
-      
-      {/* Scrollable Message Area */}
-      <Box 
-        flex="1" 
-        overflowY="auto" 
-        overflowX="hidden"
-        minHeight={0}
-        bg="gray.50"
-        pb={{ base: 2, md: 0 }}
-        css={{
-          '&::-webkit-scrollbar': { width: '6px' },
-          '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '3px' },
-        }}
-      >
+      </div>
+
+      {/* Scrollable chat area */}
+      <div style={{
+        flex: 1,
+        minHeight: 0,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        background: '#f8fafc',
+        paddingBottom: 0,
+        WebkitOverflowScrolling: 'touch',
+      }}>
         <MessageList
           messages={messages}
           currentUser={currentUser}
           isLoading={isLoading}
           typingUsers={typingUsers}
         />
-      </Box>
-      
-      {/* Fixed Input at Bottom - Always visible */}
-        {/* Only one chat input below */}
-        {selectedChat && (
-          <div className="chat-input-container">
-            <MessageInput
-              newMessage={newMessage}
-              setNewMessage={setNewMessage}
-              file={file}
-              setFile={setFile}
-              isLoading={isLoading}
-              isUploading={isUploading}
-              onSendMessage={onSendMessage}
-              onTyping={onTyping}
-            />
-          </div>
-        )}
-    </Flex>
+      </div>
+
+      {/* Input always at the bottom */}
+      {selectedChat && (
+        <div className="chat-input-container" style={{
+          flexShrink: 0,
+          background: 'white',
+          position: 'sticky',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10,
+        }}>
+          <MessageInput
+            newMessage={newMessage}
+            setNewMessage={setNewMessage}
+            file={file}
+            setFile={setFile}
+            isLoading={isLoading}
+            isUploading={isUploading}
+            onSendMessage={onSendMessage}
+            onTyping={onTyping}
+          />
+        </div>
+      )}
+    </div>
   );
 };
 
