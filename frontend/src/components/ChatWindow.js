@@ -99,27 +99,7 @@ const ChatWindow = ({
       </Box>
       
       {/* Fixed Input at Bottom - Always visible */}
-        <Box 
-          flexShrink={0} 
-          bg="white" 
-          position="sticky"
-          bottom={0}
-          left={0}
-          right={0}
-          zIndex={10}
-        >
-          <MessageInput
-            newMessage={newMessage}
-            setNewMessage={setNewMessage}
-            file={file}
-            setFile={setFile}
-            isLoading={isLoading}
-            isUploading={isUploading}
-            onSendMessage={onSendMessage}
-            onTyping={onTyping}
-          />
-        </Box>
-      )}
+        {/* Only one chat input below */}
         {selectedChat && (
           <div className="chat-input-container">
             <MessageInput
