@@ -99,7 +99,6 @@ const ChatWindow = ({
       </Box>
       
       {/* Fixed Input at Bottom - Always visible */}
-      {selectedChat && (
         <Box 
           flexShrink={0} 
           bg="white" 
@@ -121,6 +120,20 @@ const ChatWindow = ({
           />
         </Box>
       )}
+        {selectedChat && (
+          <div className="chat-input-container">
+            <MessageInput
+              newMessage={newMessage}
+              setNewMessage={setNewMessage}
+              file={file}
+              setFile={setFile}
+              isLoading={isLoading}
+              isUploading={isUploading}
+              onSendMessage={onSendMessage}
+              onTyping={onTyping}
+            />
+          </div>
+        )}
     </Flex>
   );
 };
