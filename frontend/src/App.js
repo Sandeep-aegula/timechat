@@ -413,25 +413,14 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Box bg="gray.100" style={{ minHeight: '100vh' }} overflow="hidden" py={{ base: 0, md: 4 }}>
-        <Box
-          display="flex"
-          flexDirection={{ base: "column", lg: "row" }}
-          height={{ base: "100%", md: "calc(100% - 32px)" }}
-          maxW={{ base: "100%", xl: "1400px" }}
-          mx="auto"
-          bg="white"
-          boxShadow={{ base: 'none', md: 'xl' }}
-          borderRadius={{ base: 0, md: 'xl' }}
-          overflow="hidden"
-        >
+      <Box bg="gray.100" height="100%" minHeight={0} overflow="hidden" py={0} display="flex" flexDirection={{ base: "column", lg: "row" }}>
         {/* Mobile/Tablet: Show sidebar or chat, Desktop: Show both */}
         <Box 
           display={{ base: selectedChat ? "none" : "flex", lg: "flex" }}
           width={{ base: "100%", lg: "32%" }}
           minWidth={{ lg: "320px" }}
           maxWidth={{ lg: "360px" }}
-          height={{ base: selectedChat ? "0" : "100%", lg: "100%" }}
+          height="100%"
           overflow="hidden"
           borderRightWidth={{ lg: "1px" }}
           bg="gray.50"
@@ -456,12 +445,12 @@ function App() {
             onOpenProfileModal={openProfileModal}
           />
         </Box>
-        
         {/* Chat Window */}
         <Box 
           flex="1"
           display={{ base: selectedChat ? "flex" : "none", lg: "flex" }}
           height="100%"
+          minHeight={0}
           overflow="hidden"
           bg="white"
         >
@@ -482,7 +471,6 @@ function App() {
             onBackToSidebar={() => setSelectedChat(null)}
           />
         </Box>
-        
         <ProfileEditor
           isOpen={isProfileModalOpen}
           onClose={closeProfileModal}
@@ -490,7 +478,6 @@ function App() {
           onUpdateProfile={handleUpdateProfile}
         />
         <Analytics />
-        </Box>
       </Box>
     </div>
   );
