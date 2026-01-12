@@ -413,7 +413,7 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Box bg="gray.100" style={{ height: '100dvh', minHeight: '100vh' }} overflow="hidden" py={{ base: 0, md: 4 }}>
+      <Box bg="gray.100" style={{ minHeight: '100vh' }} overflow="hidden" py={{ base: 0, md: 4 }}>
         <Box
           display="flex"
           flexDirection={{ base: "column", lg: "row" }}
