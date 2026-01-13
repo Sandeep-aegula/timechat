@@ -12,8 +12,9 @@ const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const chatRoutes = require('./routes/chat');
-const messageRoutes = require('./routes/message');
+const messageRoutes = require('./routes/messageRoutes');
 const tempCodeRoutes = require('./routes/tempCode');
+const chunkUploadRoutes = require('./routes/chunkUpload');
 
 // Connect to database
 // connectDB(); // Remove top-level connection
@@ -52,7 +53,17 @@ const io = new Server(server, {
 app.use(cors({
   origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Accept',
+    'Origin',
+    'X-Requested-With',
+    'x-file-id',
+    'x-chunk-number',
+    'x-total-chunks',
+    'x-file-name'
+  ],
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -87,8 +98,11 @@ app.use(async (req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/chat', chatRoutes);
+
+
 app.use('/api/message', messageRoutes);
 app.use('/api/temp-code', tempCodeRoutes);
+app.use('/api/chunk', chunkUploadRoutes);
 
 // Error handler middleware
 app.use(errorHandler);
@@ -113,37 +127,12 @@ io.on('connection', (socket) => {
 
   // Join a chat room
   socket.on('join chat', (chatId) => {
-    socket.join(chatId);
-    console.log(`User ${socket.userName || socket.id} joined chat: ${chatId}`);
-  });
-
-  // Leave a chat room
-  socket.on('leave chat', (chatId) => {
-    socket.leave(chatId);
-    console.log(`User ${socket.userName || socket.id} left chat: ${chatId}`);
-  });
-
-  // Handle new message
-  socket.on('new message', (message) => {
-    const chat = message.chat;
-    
-    if (!chat || !chat._id) {
-      console.log('Invalid message structure - no chat info');
+    if (!chatId) {
+      console.log('Invalid chatId for join chat');
       return;
     }
-
-    // Broadcast to all users in the chat except sender
-    socket.to(chat._id).emit('message received', message);
-    
-    // Also send to individual user rooms for notifications
-    if (chat.users) {
-      chat.users.forEach((user) => {
-        const recipientId = user._id || user;
-        if (recipientId.toString() !== socket.userId) {
-          socket.to(recipientId.toString()).emit('message received', message);
-        }
-      });
-    }
+    socket.join(chatId);
+    console.log(`Socket ${socket.id} joined chat ${chatId}`);
   });
 
   // Handle typing indicator

@@ -7,13 +7,21 @@ import {
   Avatar,
   Link,
   Image,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
 } from '@chakra-ui/react';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
 const MessageList = ({ messages, currentUser, isLoading, typingUsers = [] }) => {
   const messagesEndRef = useRef(null);
-  
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [preview, setPreview] = React.useState(null);
+
   const isMyMessage = (message) => {
     const senderId = message.sender?._id || message.sender;
     const userId = currentUser?._id || currentUser?.id;
@@ -23,14 +31,16 @@ const MessageList = ({ messages, currentUser, isLoading, typingUsers = [] }) => 
   const formatTime = (dateString) => {
     return new Date(dateString).toLocaleTimeString([], {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
-  // Auto-scroll to bottom when new messages arrive
+  // Ensure messages is always an array to prevent runtime errors
+  const safeMessages = Array.isArray(messages) ? messages : (messages?.messages || []);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [safeMessages.length]);
 
   if (isLoading) {
     return (
@@ -46,58 +56,28 @@ const MessageList = ({ messages, currentUser, isLoading, typingUsers = [] }) => 
     );
   }
 
-  if (messages.length === 0) {
-    return (
-      <Box 
-        flex="1" 
-        p={{ base: 4, md: 6 }} 
-        display="flex" 
-        alignItems="center" 
-        justifyContent="center" 
-        bg="gray.50"
-      >
-        <VStack spacing={2}>
-          <Text fontSize={{ base: "3xl", md: "4xl" }}>💬</Text>
-          <Text 
-            color="gray.500" 
-            fontSize={{ base: "sm", md: "md" }}
-            textAlign="center"
-            px={4}
-          >
-            No messages yet. Start the conversation!
-          </Text>
-        </VStack>
-      </Box>
-    );
-  }
-
   return (
-    <Box 
-      flex="1" 
-      p={{ base: 2, md: 4 }} 
-      bg="gray.50"
-    >
+    <Box flex="1" p={{ base: 2, md: 4 }} bg="gray.50" position="relative">
       <VStack spacing={{ base: 2, md: 3 }} align="stretch">
-        {messages.map((message) => {
+        {safeMessages.map((message) => {
           const isMine = isMyMessage(message);
-          const fileUrl = message.fileUrl || message.file;
+          let fileUrl = message.fileUrl || message.file;
+          // Use fileUrl as-is if it's an absolute URL (e.g., Cloudinary), otherwise prepend API_BASE
+          if (fileUrl && !/^https?:\/\//i.test(fileUrl)) {
+            fileUrl = `${API_BASE}${fileUrl}`;
+          }
           const isImage = fileUrl && (
-            fileUrl.includes('.jpg') || 
-            fileUrl.includes('.jpeg') || 
-            fileUrl.includes('.png') || 
-            fileUrl.includes('.gif') ||
-            fileUrl.includes('.webp') ||
+            /\.(jpg|jpeg|png|gif|webp)$/i.test(fileUrl) ||
             message.fileType?.startsWith('image/')
           );
-          
+          const isVideo = fileUrl && (
+            /\.(mp4|webm|ogg|3gp|mkv)$/i.test(fileUrl) ||
+            message.fileType?.startsWith('video/')
+          );
           const isAudio = fileUrl && (
-            fileUrl.includes('.webm') ||
-            fileUrl.includes('.wav') ||
-            fileUrl.includes('.mp3') ||
-            fileUrl.includes('.ogg') ||
+            /\.(webm|wav|mp3|ogg)$/i.test(fileUrl) ||
             message.fileType?.startsWith('audio/')
           );
-          
           return (
             <HStack
               key={message._id}
@@ -106,14 +86,13 @@ const MessageList = ({ messages, currentUser, isLoading, typingUsers = [] }) => 
               px={{ base: 1, md: 0 }}
             >
               {!isMine && (
-                <Avatar 
-                  name={message.sender?.name || 'User'} 
+                <Avatar
+                  name={message.sender?.name || 'User'}
                   src={message.sender?.avatar}
                   size={{ base: "xs", md: "sm" }}
                   display={{ base: "none", sm: "block" }}
                 />
               )}
-              
               <Box
                 maxW={{ base: "90%", sm: "85%", md: "80%" }}
                 bg={isMine ? 'blue.500' : 'white'}
@@ -126,39 +105,57 @@ const MessageList = ({ messages, currentUser, isLoading, typingUsers = [] }) => 
                 className="animate-fade-in"
               >
                 {!isMine && message.sender?.name && (
-                  <Text 
-                    fontSize={{ base: "2xs", md: "xs" }} 
-                    fontWeight="semibold" 
-                    mb={1} 
+                  <Text
+                    fontSize={{ base: "2xs", md: "xs" }}
+                    fontWeight="semibold"
+                    mb={1}
                     color="blue.600"
                   >
                     {message.sender.name}
                   </Text>
                 )}
-                
                 {message.content && (
-                  <Text 
-                    wordBreak="break-word" 
+                  <Text
+                    wordBreak="break-word"
                     fontSize={{ base: "sm", md: "md" }}
                     className="message-content"
                   >
                     {message.content}
                   </Text>
                 )}
-                
                 {fileUrl && (
                   <Box mt={message.content ? 2 : 0}>
                     {isImage ? (
                       <Image
-                        src={`${API_BASE}${fileUrl}`}
+                        src={fileUrl}
                         alt={message.fileName || 'Shared image'}
                         maxW={{ base: "150px", md: "200px" }}
                         maxH={{ base: "200px", md: "300px" }}
                         rounded="md"
                         cursor="pointer"
-                        onClick={() => window.open(`${API_BASE}${fileUrl}`, '_blank')}
+                        onClick={() => {
+                          setPreview({ type: 'image', src: fileUrl });
+                          onOpen();
+                        }}
                         objectFit="cover"
                       />
+                    ) : isVideo ? (
+                      // Video controller: renders video player for video messages (e.g., mp4, webm, etc.)
+                      <Box>
+                        <video
+                          src={fileUrl}
+                          style={{ maxWidth: '200px', maxHeight: '250px', borderRadius: '8px', background: '#000', cursor: 'pointer' }}
+                          controls
+                          preload="metadata"
+                          onClick={() => {
+                            setPreview({ type: 'video', src: fileUrl });
+                            onOpen();
+                          }}
+                        />
+                        <Text fontSize="xs" mt={1} opacity={0.7}>
+                          {message.fileName || 'Video'}
+                        </Text>
+                      </Box>
                     ) : isAudio ? (
                       <Box>
                         <audio
@@ -193,20 +190,18 @@ const MessageList = ({ messages, currentUser, isLoading, typingUsers = [] }) => 
                     )}
                   </Box>
                 )}
-                
-                <Text 
-                  fontSize={{ base: "2xs", md: "xs" }} 
-                  mt={{ base: 1, md: 2 }} 
+                <Text
+                  fontSize={{ base: "2xs", md: "xs" }}
+                  mt={{ base: 1, md: 2 }}
                   opacity={0.7}
                   textAlign="right"
                 >
                   {formatTime(message.createdAt)}
                 </Text>
               </Box>
-              
               {isMine && (
-                <Avatar 
-                  name={message.sender?.name || currentUser?.name || 'Me'} 
+                <Avatar
+                  name={message.sender?.name || currentUser?.name || 'Me'}
                   src={message.sender?.avatar || currentUser?.avatar}
                   size={{ base: "xs", md: "sm" }}
                   display={{ base: "none", sm: "block" }}
@@ -215,8 +210,6 @@ const MessageList = ({ messages, currentUser, isLoading, typingUsers = [] }) => 
             </HStack>
           );
         })}
-        
-        {/* Typing indicator */}
         {typingUsers.length > 0 && (
           <HStack align="flex-start" py={2} px={{ base: 1, md: 0 }}>
             <Box
@@ -226,12 +219,12 @@ const MessageList = ({ messages, currentUser, isLoading, typingUsers = [] }) => 
               py={2}
             >
               <HStack spacing={1}>
-                <Text 
-                  fontSize={{ base: "xs", md: "sm" }} 
-                  color="gray.600" 
+                <Text
+                  fontSize={{ base: "xs", md: "sm" }}
+                  color="gray.600"
                   fontStyle="italic"
                 >
-                  {typingUsers.length === 1 
+                  {typingUsers.length === 1
                     ? `${typingUsers[0].userName} is typing`
                     : `${typingUsers.map(u => u.userName).join(', ')} are typing`
                   }
@@ -245,9 +238,23 @@ const MessageList = ({ messages, currentUser, isLoading, typingUsers = [] }) => 
             </Box>
           </HStack>
         )}
-        
         <div ref={messagesEndRef} />
       </VStack>
+      {/* Preview Modal for images and videos */}
+      <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
+        <ModalOverlay />
+        <ModalContent bg="gray.900">
+          <ModalCloseButton color="white" />
+          <ModalBody p={0} display="flex" alignItems="center" justifyContent="center">
+            {preview?.type === 'image' && (
+              <Image src={preview.src} alt="Preview" maxW="100%" maxH="80vh" objectFit="contain" />
+            )}
+            {preview?.type === 'video' && (
+              <video src={preview.src} controls style={{ maxWidth: '100%', maxHeight: '80vh', borderRadius: '8px', background: '#000' }} />
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

@@ -7,6 +7,7 @@ const {
   sendMessage,
   getMessages,
   sendFileMessage,
+  sendVideoMessage,
   downloadChatHistory,
   markMessagesAsRead
 } = require('../controllers/messageController');
@@ -39,30 +40,41 @@ if (isVercel) {
   });
 }
 
-const fileFilter = (req, file, cb) => {
-  // Allow images and common document types
-  const allowedTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'image/webp',
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'text/plain'
-  ];
 
-  if (allowedTypes.includes(file.mimetype)) {
+
+// General file filter for non-video uploads (allow all file types)
+const fileFilter = (req, file, cb) => {
+  cb(null, true);
+};
+
+// Video file filter (relaxed: allow .mp4 extension if mimetype is missing or wrong)
+const videoFileFilter = (req, file, cb) => {
+  if (file.mimetype && file.mimetype.startsWith('video/')) {
+    cb(null, true);
+  } else if (file.originalname && file.originalname.match(/\.mp4$/i)) {
+    console.log('Allowing video upload by .mp4 extension:', file.originalname);
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type'), false);
+    console.log('Rejected file in videoFileFilter:', file.mimetype, file.originalname);
+    cb(new Error('Only video files are allowed'), false);
   }
 };
 
+
+const MAX_UPLOAD_BYTES = 600 * 1024 * 1024; // 600MB
+
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: MAX_UPLOAD_BYTES }, // 600MB limit for general files
   fileFilter
+});
+
+// For video uploads, prefer disk storage to avoid large memory usage locally.
+// On Vercel (serverless) storage will be memory by design.
+const videoUpload = multer({
+  storage: storage,
+  limits: { fileSize: MAX_UPLOAD_BYTES }, // 600MB limit for videos
+  fileFilter: videoFileFilter
 });
 
 // All routes are protected
@@ -73,6 +85,10 @@ router.post('/', sendMessage);
 
 // Send file message
 router.post('/file', upload.single('file'), sendFileMessage);
+
+
+// Upload a video message
+router.post('/video', videoUpload.single('file'), sendVideoMessage);
 
 // Get messages for a chat
 router.get('/:chatId', getMessages);

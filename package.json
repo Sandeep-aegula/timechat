@@ -15,7 +15,13 @@
     "prod": "cd backend && npm run prod",
     "deploy": "npm run build && npm run prod"
   },
-  "keywords": ["chat", "real-time", "socket.io", "temporary", "mern"],
+  "keywords": [
+    "chat",
+    "real-time",
+    "socket.io",
+    "temporary",
+    "mern"
+  ],
   "author": "Sandeep-aegula",
   "license": "MIT",
   "devDependencies": {
@@ -24,5 +30,8 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "cloudinary": "^2.8.0"
   }
 }

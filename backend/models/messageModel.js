@@ -35,10 +35,10 @@ const messageSchema = mongoose.Schema(
     fileSize: {
       type: Number
     },
-    // Message type: text, image, file, system
+    // Message type: text, image, file, video, system
     messageType: {
       type: String,
-      enum: ['text', 'image', 'file', 'system'],
+      enum: ['text', 'image', 'file', 'video', 'system'],
       default: 'text'
     }
   },

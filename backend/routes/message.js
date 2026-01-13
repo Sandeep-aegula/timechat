@@ -57,6 +57,19 @@ const fileFilter = (req, file, cb) => {
     'audio/mp3',
     'audio/mpeg',
     'audio/ogg',
+    // Video types
+    'video/mp4',
+    'video/webm',
+    'video/ogg',
+    'video/3gpp',
+    'video/3gp',
+    'video/x-matroska',
+    'video/quicktime', // .mov
+    'video/x-m4v',     // .m4v
+    'video/x-msvideo', // .avi
+    'video/x-flv',     // .flv
+    'video/x-ms-wmv',  // .wmv
+    // Docs
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

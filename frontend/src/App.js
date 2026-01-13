@@ -1,10 +1,11 @@
-
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, useToast, useDisclosure } from '@chakra-ui/react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 import { Analytics } from '@vercel/analytics/react';
 import './App.css';
+
+
 
 // Import our new components
 import LoginForm from './components/LoginForm';
@@ -18,6 +19,17 @@ const apiClient = axios.create({
 });
 
 function App() {
+  // Video upload controller
+  const handleSendVideoMessage = async (videoFile, chatId, content) => {
+    const formData = new FormData();
+    formData.append('file', videoFile);
+    formData.append('chatId', chatId);
+    if (content) formData.append('content', content);
+    const { data } = await apiClient.post('/api/message/video', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return data;
+  };
   const toast = useToast();
   const { isOpen: isProfileModalOpen, onOpen: openProfileModal, onClose: closeProfileModal } = useDisclosure();
   
@@ -115,7 +127,9 @@ function App() {
     try {
       setLoadingMessages(true);
       const { data } = await apiClient.get(`/api/message/${chatId}`);
-      setMessages(data);
+      // API returns { messages, totalPages, currentPage, total }
+      const msgs = Array.isArray(data) ? data : data.messages || [];
+      setMessages(msgs);
     } catch (err) {
       notify(err.response?.data?.error || 'Failed to load messages', 'error');
     } finally {
@@ -297,32 +311,76 @@ function App() {
     }
   };
 
+  // Helper for chunked upload
+  async function uploadFileInChunks(file, chatId, content, chunkSize = 2 * 1024 * 1024) {
+    const totalChunks = Math.ceil(file.size / chunkSize);
+    const fileId = `${file.name}-${file.size}-${file.lastModified}`;
+    for (let i = 0; i < totalChunks; i++) {
+      const chunk = file.slice(i * chunkSize, (i + 1) * chunkSize);
+      await apiClient.post('/api/chunk/upload-chunk', chunk, {
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          'x-chunk-number': i,
+          'x-total-chunks': totalChunks,
+          'x-file-id': fileId,
+          'x-file-name': file.name,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+    // Assemble
+    const { data } = await apiClient.post('/api/chunk/assemble-chunks', {
+      fileId,
+      fileName: file.name,
+      totalChunks,
+    }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    // Now send the message with the assembled file URL
+    const { data: messageData } = await apiClient.post('/api/message', {
+      content: content || `📎 ${file.name}`,
+      chatId,
+      fileUrl: data.fileUrl,
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size,
+    }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return messageData;
+  }
+
   const handleSendMessage = async () => {
     if ((!newMessage.trim() && !file) || !selectedChat) return;
-    
-    // Stop typing indicator when sending
     if (socketRef.current && selectedChat) {
       socketRef.current.emit('stop typing', selectedChat._id);
     }
-    
     try {
       setIsSending(true);
-      
       let messageData;
       if (file) {
-        // File upload
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('chatId', selectedChat._id);
-        if (newMessage.trim()) {
-          formData.append('content', newMessage);
-        }
-        
         setIsUploading(true);
-        const { data } = await apiClient.post('/api/message/file', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        messageData = data;
+        // Improved video detection: check MIME type and file extension
+        const isVideo = (file.type && file.type.startsWith('video/')) || /\.mp4$/i.test(file.name);
+        if (isVideo) {
+          // Use video upload controller for video files
+          messageData = await handleSendVideoMessage(file, selectedChat._id, newMessage);
+        } else if (file.size > 2 * 1024 * 1024) {
+          // Use chunked upload for large non-video files
+          messageData = await uploadFileInChunks(file, selectedChat._id, newMessage);
+        } else {
+          // Small non-video file: normal upload
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('chatId', selectedChat._id);
+          if (newMessage.trim()) {
+            formData.append('content', newMessage);
+          }
+          const { data } = await apiClient.post('/api/message/file', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          messageData = data;
+        }
       } else {
         // Text message
         const { data } = await apiClient.post('/api/message', {
@@ -331,11 +389,9 @@ function App() {
         });
         messageData = data;
       }
-      
       setMessages((prev) => [...prev, messageData]);
       setNewMessage('');
       setFile(null);
-      
       if (socketRef.current) {
         socketRef.current.emit('new message', messageData);
       }
@@ -412,6 +468,7 @@ function App() {
   }
 
   return (
+    <>
     <div className="app-shell">
       <Box bg="gray.100" height="100%" minHeight={0} overflow="hidden" py={0} display="flex" flexDirection={{ base: "column", lg: "row" }}>
         {/* Mobile/Tablet: Show sidebar or chat, Desktop: Show both */}
@@ -480,6 +537,7 @@ function App() {
         <Analytics />
       </Box>
     </div>
+    </>
   );
 }
 

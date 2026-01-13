@@ -1,7 +1,122 @@
+// @desc    Upload a video file and create a video message
+// @route   POST /api/message/video
+// @access  Private
+const sendVideoMessage = async (req, res) => {
+  try {
+    // Debug log: what is received
+    console.log('DEBUG /api/message/video req.body:', req.body);
+    console.log('DEBUG /api/message/video req.file:', req.file);
+    const { chatId } = req.body;
+
+    if (!req.file || !chatId) {
+      console.error('Video upload error: Missing file or chatId', { file: !!req.file, chatId });
+      return res.status(400).json({ error: 'Video file and chatId are required' });
+    }
+
+    // Verify user is part of the chat
+    const chat = await Chat.findOne({
+      _id: chatId,
+      users: { $elemMatch: { $eq: req.user._id } },
+      isActive: true
+    });
+
+    if (!chat) {
+      console.error('Video upload error: Chat not found or access denied', { chatId, user: req.user._id });
+      return res.status(404).json({ error: 'Chat not found or access denied' });
+    }
+
+    // Upload video to Cloudinary
+    let fileUrl = null;
+    let fileName = req.file.originalname;
+    let fileType = req.file.mimetype;
+    let fileSize = req.file.size;
+
+    try {
+      // Support both memory-buffer uploads (req.file.buffer) and disk path uploads (req.file.path)
+      if (req.file && req.file.buffer) {
+        await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            {
+              resource_type: 'video',
+              folder: 'timechat/videos',
+              public_id: fileName.split('.')[0],
+              overwrite: true
+            },
+            (error, result) => {
+              if (error) {
+                console.error('Cloudinary upload error (stream):', error);
+                return reject(error);
+              }
+              fileUrl = result.secure_url;
+              resolve();
+            }
+          );
+          stream.end(req.file.buffer);
+        });
+      } else if (req.file && req.file.path) {
+        // Upload directly from filesystem
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          resource_type: 'video',
+          folder: 'timechat/videos',
+          public_id: fileName.split('.')[0],
+          overwrite: true
+        });
+        fileUrl = result.secure_url;
+        // Remove local file after successful upload
+        const fs = require('fs');
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {
+          console.warn('Could not remove temp video file:', req.file.path, e.message);
+        }
+      } else {
+        throw new Error('No file buffer or path available for upload');
+      }
+    } catch (cloudErr) {
+      console.error('Cloudinary upload failed:', cloudErr);
+      return res.status(500).json({ error: 'Cloudinary upload failed', details: cloudErr.message });
+    }
+
+    // Defensive: ensure messageType is valid according to schema (avoid 500s if schema not reloaded)
+    const schemaEnum = Message.schema.path('messageType')?.enumValues || ['text','image','file','system'];
+    const safeMessageType = schemaEnum.includes('video') ? 'video' : 'file';
+
+    const newMessage = {
+      sender: req.user._id,
+      content: 'Sent a video',
+      chat: chatId,
+      messageType: safeMessageType,
+      fileUrl,
+      fileName,
+      fileType,
+      fileSize
+    };
+
+    let message = await Message.create(newMessage);
+
+    message = await message.populate('sender', 'name pic');
+    message = await message.populate('chat');
+    message = await User.populate(message, {
+      path: 'chat.users',
+      select: 'name pic email'
+    });
+
+    // Update latest message in chat
+    await Chat.findByIdAndUpdate(chatId, { latestMessage: message._id });
+
+    res.status(201).json(message);
+  } catch (error) {
+    console.error('sendVideoMessage controller error:', error);
+    res.status(500).json({ error: error.message || 'Failed to upload video' });
+  }
+};
+
+// ...existing code...
 const Message = require('../models/messageModel');
 const Chat = require('../models/chatModel');
 const User = require('../models/userModel');
 const archiver = require('archiver');
+const cloudinary = require('../config/cloudinary');
 
 // @desc    Send a message
 // @route   POST /api/message
@@ -121,6 +236,58 @@ const sendFileMessage = async (req, res) => {
     let messageType = 'file';
     if (req.file.mimetype.startsWith('image/')) {
       messageType = 'image';
+    } else if (req.file.mimetype.startsWith('video/')) {
+      messageType = 'video';
+    }
+
+    let fileUrl = null;
+    let fileName = req.file.originalname;
+    let fileType = req.file.mimetype;
+    let fileSize = req.file.size;
+
+    // Upload video files to Cloudinary
+    if (messageType === 'video') {
+      try {
+        // If using memoryStorage, buffer is available
+        const uploadResult = await cloudinary.uploader.upload_stream(
+          {
+            resource_type: 'video',
+            folder: 'timechat/videos',
+            public_id: fileName.split('.')[0],
+            overwrite: true
+          },
+          (error, result) => {
+            if (error) throw error;
+            fileUrl = result.secure_url;
+          }
+        );
+        // Pipe the buffer to the upload_stream
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            resource_type: 'video',
+            folder: 'timechat/videos',
+            public_id: fileName.split('.')[0],
+            overwrite: true
+          },
+          (error, result) => {
+            if (error) {
+              throw error;
+            }
+            fileUrl = result.secure_url;
+          }
+        );
+        stream.end(req.file.buffer);
+        // Wait for upload to finish
+        await new Promise((resolve, reject) => {
+          stream.on('finish', resolve);
+          stream.on('error', reject);
+        });
+      } catch (err) {
+        return res.status(500).json({ error: 'Cloudinary upload failed', details: err.message });
+      }
+    } else {
+      // For non-video files, use local storage as before
+      fileUrl = `/uploads/${req.file.filename}`;
     }
 
     const newMessage = {
@@ -128,10 +295,10 @@ const sendFileMessage = async (req, res) => {
       content: `Sent a ${messageType}`,
       chat: chatId,
       messageType,
-      fileUrl: `/uploads/${req.file.filename}`,
-      fileName: req.file.originalname,
-      fileType: req.file.mimetype,
-      fileSize: req.file.size
+      fileUrl,
+      fileName,
+      fileType,
+      fileSize
     };
 
     let message = await Message.create(newMessage);
@@ -293,6 +460,7 @@ module.exports = {
   sendMessage,
   getMessages,
   sendFileMessage,
+  sendVideoMessage,
   downloadChatHistory,
   markMessagesAsRead
 };
