@@ -48,7 +48,6 @@ const LoginForm = ({ onLogin, onRegister }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
   const [fpEmail, setFpEmail] = useState('');
-  const [fpLoading, setFpLoading] = useState(false);
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
   const [newPassword, setNewPassword] = useState('');
 
