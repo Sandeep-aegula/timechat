@@ -16,6 +16,16 @@ import {
   Text,
   VStack,
   Spinner,
+  Link,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  useToast
 } from '@chakra-ui/react';
 
 const LoginForm = ({ onLogin, onRegister }) => {
@@ -31,6 +41,39 @@ const LoginForm = ({ onLogin, onRegister }) => {
       await onLogin({ email, password });
     } finally {
       setIsLoggingIn(false);
+    }
+  };
+
+  // Forgot password modal state (direct UI-driven reset)
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const toast = useToast();
+  const [fpEmail, setFpEmail] = useState('');
+  const [fpLoading, setFpLoading] = useState(false);
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+
+  const handleResetByEmail = async (e) => {
+    e && e.preventDefault();
+    if (!fpEmail || !newPassword) return toast({ status: 'error', title: 'Enter email and new password' });
+    setResetPasswordLoading(true);
+    try {
+      const res = await fetch('/api/auth/reset-by-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: fpEmail, password: newPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast({ status: 'success', title: data.message || 'Password updated' });
+        onClose();
+        setFpEmail(''); setNewPassword('');
+      } else {
+        toast({ status: 'error', title: data.message || 'Reset failed' });
+      }
+    } catch (error) {
+      toast({ status: 'error', title: error.message || 'Reset failed' });
+    } finally {
+      setResetPasswordLoading(false);
     }
   };
 
@@ -115,6 +158,10 @@ const LoginForm = ({ onLogin, onRegister }) => {
                       fontSize={{ base: "16px", md: "md" }}
                     />
                   </FormControl>
+                  <Link color="teal.500" onClick={onOpen} alignSelf="flex-end" fontSize={{ base: 'sm', md: 'md' }}>
+                    Forgot password?
+                  </Link>
+
                   <Button 
                     colorScheme="teal" 
                     type="submit" 
@@ -183,7 +230,32 @@ const LoginForm = ({ onLogin, onRegister }) => {
           </TabPanels>
         </Tabs>
       </Box>
-    </Center>
+      <Modal isOpen={isOpen} onClose={onClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Forgot password</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <form onSubmit={handleResetByEmail}>
+              <Stack>
+                <FormControl>
+                  <FormLabel>Email</FormLabel>
+                  <Input value={fpEmail} onChange={(e) => setFpEmail(e.target.value)} type="email" required />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>New password</FormLabel>
+                  <Input value={newPassword} onChange={(e) => setNewPassword(e.target.value)} type="password" required />
+                </FormControl>
+                <Button isLoading={resetPasswordLoading} colorScheme="teal" type="submit">Reset password</Button>
+              </Stack>
+            </form>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onClose}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      </Center>
   );
 };
 

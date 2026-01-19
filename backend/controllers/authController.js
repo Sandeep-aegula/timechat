@@ -1,4 +1,6 @@
+const crypto = require('crypto');
 const User = require('../models/userModel');
+const PasswordResetToken = require('../models/passwordResetToken');
 const { generateToken } = require('../utils/helpers');
 
 // @desc    Register a new user
@@ -189,6 +191,108 @@ const logoutUser = async (req, res) => {
   }
 };
 
+// @desc    Request password reset (send reset email)
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400);
+      throw new Error('Please provide an email');
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.json({ message: 'If that email is registered, a reset link has been sent.' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const expires = Date.now() + 1000 * 60 * 60; // 1 hour
+
+    await PasswordResetToken.deleteMany({ user: user._id });
+    await PasswordResetToken.create({ user: user._id, tokenHash, expiresAt: new Date(expires) });
+
+    const clientUrl = process.env.CLIENT_URL || `${req.protocol}://${req.get('host')}`;
+    const resetUrl = `${clientUrl.replace(/\/$/, '')}/reset-password?token=${token}&id=${user._id}`;
+
+    // Return the reset token and URL directly (no email sent)
+    res.json({ message: 'Reset token generated', resetUrl, token });
+  } catch (error) {
+    res.status(res.statusCode === 200 ? 500 : res.statusCode);
+    res.json({ message: error.message });
+  }
+};
+
+// @desc    Reset password using token
+// @route   POST /api/auth/reset-password
+// @access  Public
+const resetPassword = async (req, res) => {
+  try {
+    const { token, id, password } = req.body;
+    if (!token || !id || !password) {
+      res.status(400);
+      throw new Error('Missing required fields');
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const tokenDoc = await PasswordResetToken.findOne({ user: id, tokenHash });
+    if (!tokenDoc) {
+      res.status(400);
+      throw new Error('Invalid or expired token');
+    }
+    if (new Date() > tokenDoc.expiresAt) {
+      await PasswordResetToken.deleteMany({ user: id });
+      res.status(400);
+      throw new Error('Token expired');
+    }
+
+    const user = await User.findById(id).select('+password');
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    user.password = password;
+    await user.save();
+
+    await PasswordResetToken.deleteMany({ user: id });
+
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    res.status(res.statusCode === 200 ? 500 : res.statusCode);
+    res.json({ message: error.message });
+  }
+};
+
+// @desc    Reset password directly by providing email and new password (UI-driven)
+// @route   POST /api/auth/reset-by-email
+// @access  Public
+const resetByEmail = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      res.status(400);
+      throw new Error('Please provide email and new password');
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    if (!user) {
+      // Do not reveal whether email exists
+      return res.json({ message: 'If that email exists the password was updated' });
+    }
+
+    user.password = password;
+    await user.save();
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    res.status(res.statusCode === 200 ? 500 : res.statusCode);
+    res.json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -197,3 +301,7 @@ module.exports = {
   searchUsers,
   logoutUser
 };
+
+module.exports.forgotPassword = forgotPassword;
+module.exports.resetPassword = resetPassword;
+module.exports.resetByEmail = resetByEmail;

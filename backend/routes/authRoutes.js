@@ -6,13 +6,19 @@ const {
   getUserProfile,
   updateUserProfile,
   searchUsers,
-  logoutUser
+  logoutUser,
+  forgotPassword,
+  resetPassword
 } = require('../controllers/authController');
+const { resetByEmail } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
 // Public routes
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
+router.post('/reset-by-email', resetByEmail);
 
 // Protected routes
 router.get('/profile', protect, getUserProfile);

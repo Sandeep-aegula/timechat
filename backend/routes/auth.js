@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/userModel');
 const { generateToken } = require('../middleware/auth');
+const { resetByEmail } = require('../controllers/authController');
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -139,6 +140,26 @@ router.put('/profile', protect, async (req, res) => {
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({ error: error.message || 'Failed to update profile' });
+  }
+});
+
+// @route   POST /api/auth/reset-by-email
+// @desc    Reset password directly by providing email and new password (UI-driven)
+// @access  Public
+router.post('/reset-by-email', async (req, res, next) => {
+  // delegate to controller if available
+  try {
+    if (typeof resetByEmail === 'function') return resetByEmail(req, res, next);
+    // fallback: perform minimal reset
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Please provide email and new password' });
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    if (!user) return res.json({ message: 'If that email exists the password was updated' });
+    user.password = password;
+    await user.save();
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    next(err);
   }
 });
 
