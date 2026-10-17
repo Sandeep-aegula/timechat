@@ -21,7 +21,7 @@ A full-stack chat experience with temporary access codes, realtime messaging, fi
 ### Local Development
 1. **Clone and install dependencies**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Sandeep-aegula/timechat.git
    cd timechat
    npm run install:all
    ```
